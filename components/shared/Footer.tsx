@@ -69,7 +69,7 @@ const Footer = () => {
               priority
             />
             {settings?.tagline && (
-              <p className="mb-8 text-xl italic text-gray-600 dark:text-gray-400 border-l-4 border-white pl-4">
+              <p className="mb-8 text-xl italic text-primary-600 dark:text-orange-400 border-l-4 border-primary pl-4">
                 {settings.tagline}
               </p>
             )}
@@ -161,7 +161,7 @@ const Footer = () => {
       <div className="flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-2 w-full text-white bg-[#1d0237] px-4 py-2">
         <p className="text-sm">
           Copyright © 2025 - All rights reserved by{" "}
-          <a href={"/"} className="hover:underline hover:text-white">
+          <a href={"/"} className="hover:underline hover:text-primary">
             {settings?.name}
           </a>
         </p>
@@ -171,7 +171,7 @@ const Footer = () => {
             href="https://www.artistycode.studio"
             target="_blank"
             rel="noopener noreferrer"
-            className="underline hover:text-white"
+            className="underline hover:text-primary"
           >
             ArtistyCode Studio
           </a>
