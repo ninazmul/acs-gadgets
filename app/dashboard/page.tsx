@@ -42,7 +42,6 @@ import {
   getAllPayments,
   getPaymentsByEmail,
 } from "@/lib/actions/payment.actions";
-import FinanceStats from "./components/FinanceStats";
 
 // Register Chart.js components
 ChartJS.register(
@@ -175,7 +174,6 @@ const Dashboard = () => {
       <div className="p-4 space-y-4">
         <h2 className="text-2xl font-bold mb-4">Financial Overview</h2>
         <DashboardStats orders={orders} payments={payments} />
-        {adminStatus && <FinanceStats products={products} orders={orders} />}
       </div>
 
       <div className="p-4">
