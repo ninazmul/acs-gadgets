@@ -42,8 +42,6 @@ export interface ProductParams {
   }[];
   price: string;
   oldPrice?: string;
-  wholesalePrice?: string;
-  suggestedPrice: string;
   stock: string;
   category: string;
   subCategory?: string[];

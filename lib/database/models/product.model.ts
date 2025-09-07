@@ -9,8 +9,6 @@ export interface IProduct extends Document {
   }[];
   price: string;
   oldPrice?: string;
-  wholesalePrice?: string;
-  suggestedPrice: string;
   stock: string;
   category: string;
   subCategory?: string[]; 
@@ -38,8 +36,6 @@ const ProductSchema = new Schema<IProduct>(
     ],
     price: { type: String, required: true },
     oldPrice: { type: String },
-    wholesalePrice: { type: String },
-    suggestedPrice: { type: String, required: true },
     stock: { type: String, required: true },
     category: { type: String, required: true },
     subCategory: [{ type: String }],

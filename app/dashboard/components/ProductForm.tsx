@@ -32,8 +32,6 @@ const productFormSchema = z.object({
   ),
   price: z.string().min(1, "Price is required"),
   oldPrice: z.string().optional(),
-  wholesalePrice: z.string().optional(),
-  suggestedPrice: z.string().min(1, "Suggested price is required"),
   stock: z.string().min(1, "Stock is required"),
   category: z.string().min(1, "Category is required"),
   subCategory: z.array(z.string()).optional(),
@@ -79,8 +77,6 @@ const ProductForm = ({
           images: [],
           price: "",
           oldPrice: "",
-          wholesalePrice: "",
-          suggestedPrice: "",
           stock: "",
           category: "",
           subCategory: [],
@@ -242,21 +238,6 @@ const ProductForm = ({
           )}
         />
 
-        {/* Suggested Price */}
-        <FormField
-          control={form.control}
-          name="suggestedPrice"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Suggested Price</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter suggested price" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
         {/* Old Price */}
         <FormField
           control={form.control}
@@ -266,24 +247,6 @@ const ProductForm = ({
               <FormLabel>Old Price</FormLabel>
               <FormControl>
                 <Input placeholder="Enter old price (optional)" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Wholesale Price */}
-        <FormField
-          control={form.control}
-          name="wholesalePrice"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Wholesale Price</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Enter wholesale price (optional)"
-                  {...field}
-                />
               </FormControl>
               <FormMessage />
             </FormItem>
