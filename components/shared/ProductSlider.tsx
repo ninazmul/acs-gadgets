@@ -25,9 +25,9 @@ export default function ProductSlider({ products }: Props) {
       }}
       spaceBetween={16}
       breakpoints={{
-        0: { slidesPerView: 1.2 },
-        640: { slidesPerView: 1.5 },
-        768: { slidesPerView: 2.5 },
+        0: { slidesPerView: 2 },
+        640: { slidesPerView: 2 },
+        768: { slidesPerView: 3 },
         1024: { slidesPerView: 5 },
       }}
       className="!py-4"

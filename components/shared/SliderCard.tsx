@@ -29,20 +29,20 @@ const SliderCard = ({
       href={`/products/${_id}`}
       className="group block transition-transform transform hover:scale-[1.02] duration-300"
     >
-      <div className="w-full h-64 relative overflow-hidden rounded-md">
+      <div className="w-full h-64 relative overflow-hidden rounded-md bg-gray-100">
         {/* First Image (default) */}
         <Image
           src={firstImage}
           alt={title}
           fill
-          className="object-cover transition-opacity duration-300 ease-in-out group-hover:opacity-0 rounded-md"
+          className="object-contain transition-opacity duration-300 ease-in-out group-hover:opacity-0 rounded-md"
         />
         {/* Second Image (hover) */}
         <Image
           src={secondImage}
           alt={`${title} alt`}
           fill
-          className="object-cover transition-opacity duration-300 ease-in-out opacity-0 group-hover:opacity-100 rounded-md"
+          className="object-contain transition-opacity duration-300 ease-in-out opacity-0 group-hover:opacity-100 rounded-md"
         />
       </div>
 
