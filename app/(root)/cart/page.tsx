@@ -19,7 +19,6 @@ type CartItem = {
   title: string;
   images: string;
   price: number;
-  sellingPrice: number;
   quantity: number;
   category: string;
   brand?: string;
@@ -93,7 +92,7 @@ export default function CartPage() {
 
   const getTotal = () => {
     return cartItems.reduce(
-      (acc, item) => acc + item.sellingPrice * item.quantity,
+      (acc, item) => acc + item.price * item.quantity,
       0
     );
   };

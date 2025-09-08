@@ -8,8 +8,10 @@ import {
   StickyNote,
   CreditCard,
 } from "lucide-react";
-import { getSellerByEmail } from "@/lib/actions/seller.actions";
 import InvoiceDownloader from "../../components/InvoiceDownloader";
+import { auth } from "@clerk/nextjs/server";
+import { getUserEmailById } from "@/lib/actions/user.actions";
+import { getSetting } from "@/lib/actions/setting.actions";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -35,6 +37,12 @@ const OrderDetails = async ({ params }: PageProps) => {
   const { id } = await params;
   const order = await getOrderById(id);
 
+  const { sessionClaims } = await auth();
+  const userId = sessionClaims?.userId as string;
+  const email = await getUserEmailById(userId);
+
+  const setting = await getSetting();
+
   if (!order) {
     return (
       <div className="px-4 py-10 text-center text-xl text-destructive">
@@ -42,8 +50,6 @@ const OrderDetails = async ({ params }: PageProps) => {
       </div>
     );
   }
-
-  const seller = await getSellerByEmail(order.email);
 
   const InfoItem = ({
     label,
@@ -67,21 +73,8 @@ const OrderDetails = async ({ params }: PageProps) => {
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 border-b pb-6 mb-6">
           {/* Seller Brand */}
           <div className="flex items-center gap-4">
-            {seller?.shopLogo && (
-              <Image
-                src={seller.shopLogo}
-                alt={seller.shopName}
-                width={60}
-                height={60}
-                className="rounded-full border object-cover"
-              />
-            )}
             <div>
-              <h1 className="text-2xl font-bold">
-                {seller?.shopName || "Shop"}
-              </h1>
-              <p className="text-sm text-muted-foreground">{seller?.email}</p>
-              <p className="text-sm text-muted-foreground">{seller?.number}</p>
+              <p className="text-sm text-muted-foreground">{email}</p>
             </div>
           </div>
           {/* Invoice Info */}
@@ -275,7 +268,7 @@ const OrderDetails = async ({ params }: PageProps) => {
           Last updated: {formatDate(order.updatedAt)}
         </div>
       </div>
-      <InvoiceDownloader order={order} seller={seller} />
+      <InvoiceDownloader order={order} setting={setting} />
     </section>
   );
 };

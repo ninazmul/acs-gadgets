@@ -8,8 +8,6 @@ import { IProduct } from "@/lib/database/models/product.model";
 import AddToCart from "@/components/shared/AddToCart";
 import { auth } from "@clerk/nextjs/server";
 import { getUserEmailById } from "@/lib/actions/user.actions";
-import { isAdmin } from "@/lib/actions/admin.actions";
-import { isSeller } from "@/lib/actions/seller.actions";
 import { Cloud } from "lucide-react";
 
 type PageProps = {
@@ -40,8 +38,6 @@ const ProductDetails = async ({ params }: PageProps) => {
   const { sessionClaims } = await auth();
   const userId = sessionClaims?.userId as string;
   const email = await getUserEmailById(userId);
-  const adminStatus = await isAdmin(email);
-  const sellerStatus = await isSeller(email);
 
   const { id } = await params;
   const product = await getProductById(id);
@@ -116,33 +112,17 @@ const ProductDetails = async ({ params }: PageProps) => {
               />
             </div>
             <Separator />
-            {(adminStatus || sellerStatus) && (
-              <>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-semibold text-green-500">
-                    Price:
-                  </h3>
-                  <p className="text-2xl font-semibold text-primary-900">
-                    ৳{product.price}
-                  </p>
-                  {product.oldPrice && (
-                    <p className="text-sm text-muted-foreground line-through">
-                      ৳{product.oldPrice}
-                    </p>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-semibold text-red-500">
-                    Suggested Price:
-                  </h3>
-                  {product.suggestedPrice && (
-                    <p className="text-2xl font-semibold text-primary-900">
-                      ৳{product.suggestedPrice}
-                    </p>
-                  )}
-                </div>
-              </>
-            )}
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-semibold text-green-500">Price:</h3>
+              <p className="text-2xl font-semibold text-green-500">
+                ৳{product.price}
+              </p>
+              {product.oldPrice && (
+                <p className="text-sm text-muted-foreground line-through">
+                  ৳{product.oldPrice}
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Variations */}
@@ -174,25 +154,21 @@ const ProductDetails = async ({ params }: PageProps) => {
                 ))}
               </ul>
 
-              {(adminStatus || sellerStatus) && product?.link && (
-                <>
-                  <div className="my-2" />
-                  <Separator />
-                  <div className="my-2" />
+              <div className="my-2" />
+              <Separator />
+              <div className="my-2" />
 
-                  <a
-                    href={product.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg
+              <a
+                href={product.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg
                bg-gray-800 text-white font-medium shadow-sm 
                hover:bg-gray-900 hover:shadow-md transition-all duration-200 cursor-pointer"
-                  >
-                    <Cloud />
-                    <span>Access Product Media</span>
-                  </a>
-                </>
-              )}
+              >
+                <Cloud />
+                <span>Access Product Media</span>
+              </a>
             </div>
           )}
         </div>
@@ -221,8 +197,6 @@ const ProductDetails = async ({ params }: PageProps) => {
                 <AddToCart
                   product={product}
                   email={email}
-                  isSeller={sellerStatus}
-                  isAdmin={adminStatus}
                 />
               )}
             </CardContent>
@@ -260,12 +234,7 @@ const ProductDetails = async ({ params }: PageProps) => {
           <h2 className="text-xl font-bold">Related Products</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-4">
             {relatedProducts.slice(0, 10).map((item: IProduct) => (
-              <ProductCard
-                key={item._id}
-                {...item}
-                isAdmin={adminStatus}
-                isSeller={sellerStatus}
-              />
+              <ProductCard key={item._id} {...item} />
             ))}
           </div>
         </section>

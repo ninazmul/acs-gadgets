@@ -17,14 +17,10 @@ import ProductCard from "@/components/shared/ProductCard";
 
 interface ProductFiltersClientProps {
   rawProducts: IProduct[];
-  isSeller?: boolean;
-  isAdmin?: boolean;
 }
 
 export default function ProductFiltersClient({
   rawProducts,
-  isSeller,
-  isAdmin,
 }: ProductFiltersClientProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -208,25 +204,23 @@ export default function ProductFiltersClient({
       </div>
 
       {/* Price Range */}
-      {(isSeller || isAdmin) && (
-        <div>
-          <label className="block text-sm font-medium">Price Range</label>
-          <div className="mt-2 flex gap-2">
-            <Input
-              type="number"
-              placeholder="Min"
-              value={minPrice}
-              onChange={(e) => setMinPrice(e.target.value)}
-            />
-            <Input
-              type="number"
-              placeholder="Max"
-              value={maxPrice}
-              onChange={(e) => setMaxPrice(e.target.value)}
-            />
-          </div>
+      <div>
+        <label className="block text-sm font-medium">Price Range</label>
+        <div className="mt-2 flex gap-2">
+          <Input
+            type="number"
+            placeholder="Min"
+            value={minPrice}
+            onChange={(e) => setMinPrice(e.target.value)}
+          />
+          <Input
+            type="number"
+            placeholder="Max"
+            value={maxPrice}
+            onChange={(e) => setMaxPrice(e.target.value)}
+          />
         </div>
-      )}
+      </div>
 
       {/* Category */}
       <div>
@@ -325,12 +319,7 @@ export default function ProductFiltersClient({
               </p>
             ) : (
               currentProducts.map((product) => (
-                <ProductCard
-                  key={product._id}
-                  {...product}
-                  isSeller={isSeller}
-                  isAdmin={isAdmin}
-                />
+                <ProductCard key={product._id} {...product} />
               ))
             )}
           </div>

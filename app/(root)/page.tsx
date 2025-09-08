@@ -4,10 +4,6 @@ import { getProductsBySubCategory } from "@/lib/actions/product.actions";
 import "swiper/css";
 import "swiper/css/navigation";
 import ProductSlider from "@/components/shared/ProductSlider";
-import { auth } from "@clerk/nextjs/server";
-import { getUserEmailById } from "@/lib/actions/user.actions";
-import { isSeller } from "@/lib/actions/seller.actions";
-import { isAdmin } from "@/lib/actions/admin.actions";
 
 const subcategories = [
   "New Arrival",
@@ -31,11 +27,6 @@ const subcategories = [
 ];
 
 export default async function Home() {
-  const { sessionClaims } = await auth();
-  const userId = sessionClaims?.userId as string;
-  const email = await getUserEmailById(userId);
-  const adminStatus = await isAdmin(email);
-  const sellerStatus = await isSeller(email);
 
   const banners = await getAllBanners();
 
@@ -67,7 +58,9 @@ export default async function Home() {
                   {subcategory}
                 </h2>
                 <div className="px-4">
-                  <ProductSlider products={products} isSeller={sellerStatus} isAdmin={adminStatus} />
+                  <ProductSlider
+                    products={products}
+                  />
                 </div>
               </div>
             )

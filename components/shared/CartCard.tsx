@@ -15,7 +15,6 @@ type ProductItem = {
   title: string;
   images: string;
   price: number;
-  sellingPrice: number;
   quantity: number;
   variations?: Variation[];
 };
@@ -52,7 +51,7 @@ const ProductCard = ({
 
           <div className="flex gap-2 items-baseline">
             <span className="text-green-600 font-semibold text-sm">
-              ৳{item.sellingPrice}
+              ৳{item.price.toFixed(2)}
             </span>
           </div>
 

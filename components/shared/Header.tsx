@@ -25,7 +25,6 @@ import {
 import CartCard from "./CartCard";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { getSellerByEmail, isSeller } from "@/lib/actions/seller.actions";
 import { getSetting } from "@/lib/actions/setting.actions";
 import { ISetting } from "@/lib/database/models/setting.model";
 import { FaMagnifyingGlass } from "react-icons/fa6";
@@ -48,7 +47,6 @@ export default function Header() {
   const { user } = useUser();
   const router = useRouter();
   const [adminStatus, setAdminStatus] = useState(false);
-  const [sellerStatus, setSellerStatus] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [initialLoad, setInitialLoad] = useState(true);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -73,20 +71,11 @@ export default function Header() {
     try {
       const userID = await getUserByClerkId(user.id);
       const email = await getUserEmailById(userID);
-      const sellerStatus = await isSeller(email);
-      setSellerStatus(sellerStatus);
 
       const [isAdminStatus, carts] = await Promise.all([
         isAdmin(email),
         getCartsByEmail(email),
       ]);
-
-      const seller = await getSellerByEmail(email);
-      if (seller) {
-        setSellerStatus(true);
-      } else {
-        setSellerStatus(false);
-      }
 
       setAdminStatus(isAdminStatus);
       setCartItems(carts || []);
@@ -149,9 +138,7 @@ export default function Header() {
             alt={settings?.name || "Logo"}
           />
           <h1 className="md:text-3xl lg:text-4xl font-serif font-bold hidden md:flex gap-2">
-            <span className="text-white">
-              {settings?.name?.split(" ")[0]}
-            </span>
+            <span className="text-white">{settings?.name?.split(" ")[0]}</span>
             <span className="text-primary-600">
               {" "}
               {settings?.name?.split(" ").slice(1).join(" ")}
@@ -178,7 +165,7 @@ export default function Header() {
 
         <div className="flex items-center gap-3">
           <SignedIn>
-            {(adminStatus || sellerStatus) && (
+            {adminStatus && (
               <Button
                 asChild
                 variant="outline"
@@ -213,83 +200,77 @@ export default function Header() {
         </nav>
         <MobileNav />
 
-        {adminStatus || sellerStatus ? (
-          <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-            <SheetTrigger asChild>
-              <button
-                className="relative focus:outline-none text-white hover:text-white"
-                aria-label="Open cart"
-              >
-                <ShoppingCart size={24} />
-                {cartItems.length > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-orange-600 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center">
-                    {cartItems.length}
-                  </span>
-                )}
-              </button>
-            </SheetTrigger>
-            <SheetContent
-              side="right"
-              className="max-w-md p-4 bg-white text-white"
+        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+          <SheetTrigger asChild>
+            <button
+              className="relative focus:outline-none text-white hover:text-white"
+              aria-label="Open cart"
             >
-              <SheetHeader>
-                <SheetTitle className="mb-4 text-white">Your Cart</SheetTitle>
-              </SheetHeader>
+              <ShoppingCart size={24} />
+              {cartItems.length > 0 && (
+                <span className="absolute -top-2 -right-2 bg-orange-600 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center">
+                  {cartItems.length}
+                </span>
+              )}
+            </button>
+          </SheetTrigger>
+          <SheetContent
+            side="right"
+            className="max-w-md p-4 bg-white text-primary"
+          >
+            <SheetHeader>
+              <SheetTitle className="mb-4 text-primary">Your Cart</SheetTitle>
+            </SheetHeader>
 
-              <div className="space-y-4 overflow-y-auto max-h-[400px]">
-                {initialLoad ? (
-                  <p>Loading cart...</p>
-                ) : cartItems.length === 0 ? (
-                  <p>Your cart is empty.</p>
-                ) : (
-                  cartItems
-                    .slice(0, 3)
-                    .map((item) => (
-                      <CartCard
-                        key={item._id}
-                        item={item}
-                        onUpdateQuantity={handleQuantityChange}
-                        onDelete={handleDelete}
-                      />
-                    ))
-                )}
-              </div>
+            <div className="space-y-4 overflow-y-auto max-h-[400px]">
+              {initialLoad ? (
+                <p>Loading cart...</p>
+              ) : cartItems.length === 0 ? (
+                <p>Your cart is empty.</p>
+              ) : (
+                cartItems
+                  .slice(0, 3)
+                  .map((item) => (
+                    <CartCard
+                      key={item._id}
+                      item={item}
+                      onUpdateQuantity={handleQuantityChange}
+                      onDelete={handleDelete}
+                    />
+                  ))
+              )}
+            </div>
 
-              <div className="mt-4 flex flex-col gap-2">
-                <a
-                  href="/cart"
-                  onClick={(e) => isCartEmpty && e.preventDefault()}
+            <div className="mt-4 flex flex-col gap-2">
+              <a
+                href="/cart"
+                onClick={(e) => isCartEmpty && e.preventDefault()}
+              >
+                <Button
+                  variant="outline"
+                  className="w-full border-primary text-primary hover:bg-primary hover:text-red-200"
+                  onClick={() => setSheetOpen(false)}
+                  disabled={isCartEmpty}
                 >
-                  <Button
-                    variant="outline"
-                    className="w-full border-white text-white hover:bg-white hover:text-red-200"
-                    onClick={() => setSheetOpen(false)}
-                    disabled={isCartEmpty}
-                  >
-                    View All Items
-                  </Button>
-                </a>
+                  View All Items
+                </Button>
+              </a>
 
-                <a
-                  href="/checkout"
-                  onClick={(e) => isCartEmpty && e.preventDefault()}
+              <a
+                href="/checkout"
+                onClick={(e) => isCartEmpty && e.preventDefault()}
+              >
+                <Button
+                  className="w-full bg-primary hover:bg-primary text-white"
+                  onClick={() => setSheetOpen(false)}
+                  disabled={isCartEmpty}
                 >
-                  <Button
-                    className="w-full bg-white hover:bg-white text-white"
-                    onClick={() => setSheetOpen(false)}
-                    disabled={isCartEmpty}
-                  >
-                    Proceed to Checkout
-                  </Button>
-                </a>
-              </div>
-            </SheetContent>
-          </Sheet>
-        ) : (
-          <a href="/register" className="text-white hover:text-white">
-            <ShoppingCart />
-          </a>
-        )}
+                  Proceed to Checkout
+                </Button>
+              </a>
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
     </header>
   );

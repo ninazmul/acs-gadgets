@@ -4,7 +4,6 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
-import { IPayment } from "@/lib/database/models/payment.model";
 
 type Product = {
   price: number;
@@ -52,39 +51,7 @@ function calculateOrderStats(orders: Order[]): Stats {
   };
 }
 
-function calculatePaymentStats(payments: IPayment[]) {
-  let paidTotal = 0;
-  let dueTotal = 0;
-
-  payments.forEach((payment) => {
-    if (payment.progress === "Paid") {
-      paidTotal += Number(payment.amount) || 0;
-    } else if (
-      payment.progress === "Pending" ||
-      payment.progress === "In Progress"
-    ) {
-      dueTotal += Number(payment.amount) || 0;
-    }
-  });
-
-  const total = paidTotal + dueTotal;
-  const paidPercentage =
-    total > 0 ? ((paidTotal / total) * 100).toFixed(2) : "0";
-
-  return {
-    paidTotal,
-    dueTotal,
-    paidPercentage: parseFloat(paidPercentage),
-  };
-}
-
-const DashboardStats = ({
-  orders,
-  payments,
-}: {
-  orders: Order[];
-  payments: IPayment[];
-}) => {
+const DashboardStats = ({ orders }: { orders: Order[] }) => {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -122,19 +89,8 @@ const DashboardStats = ({
     });
   }, [orders, startDate, endDate]);
 
-  const filteredPayments = useMemo(() => {
-    if (!startDate || !endDate) return [];
-    return payments.filter((payment) => {
-      const created = new Date(payment.createdAt);
-      return created >= startDate && created <= endDate;
-    });
-  }, [payments, startDate, endDate]);
-
   const { totalRevenue, totalCost, profit, profitMargin } =
     calculateOrderStats(filteredOrders);
-
-  const { paidTotal, dueTotal, paidPercentage } =
-    calculatePaymentStats(filteredPayments);
 
   const updateDateRange = (
     newRange: "7d" | "1m" | "1y" | "custom",
@@ -194,14 +150,6 @@ const DashboardStats = ({
       value: profitMargin,
       isProgress: true,
       color: "text-green-600",
-    },
-    {
-      title: "Payments",
-      value: paidPercentage,
-      isProgress: true,
-      paidTotal,
-      dueTotal,
-      color: "text-blue-600",
     },
   ];
 
@@ -273,16 +221,6 @@ const DashboardStats = ({
                     })}
                   />
                 </div>
-                {stat.title === "Payments" && (
-                  <div className="text-xs flex flex-col items-center">
-                    <span className="text-green-600">
-                      Paid: ৳{stat.paidTotal?.toFixed(2)}
-                    </span>
-                    <span className="text-red-600">
-                      Due: ৳{stat.dueTotal?.toFixed(2)}
-                    </span>
-                  </div>
-                )}
               </div>
             ) : (
               <p className={`mt-4 text-xl font-bold ${stat.color}`}>

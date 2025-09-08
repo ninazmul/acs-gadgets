@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createOrder } from "@/lib/actions/order.actions";
 import { decreaseProductQuantity } from "@/lib/actions/product.actions";
-import { updateCustomerStatsAfterOrder } from "@/lib/actions/customer.actions";
-import {
-  updateSellerStatsAfterOrder,
-  getSellerByEmail,
-} from "@/lib/actions/seller.actions";
 import { executePayment } from "@/lib/service/bkash";
 import { deleteCartsByEmail } from "@/lib/actions/cart.actions";
 import {
@@ -186,23 +181,6 @@ export async function GET(req: NextRequest) {
         decreaseProductQuantity(item.productId, item.quantity)
       )
     );
-
-    // 6️⃣ Update seller stats
-    const seller = await getSellerByEmail(userEmail);
-    if (seller?._id) {
-      await updateSellerStatsAfterOrder({
-        sellerId: seller._id,
-        orderAmount: total,
-      });
-    }
-
-    // 7️⃣ Update customer stats
-    if (customer?._id) {
-      await updateCustomerStatsAfterOrder({
-        customerId: customer._id,
-        orderAmount: total,
-      });
-    }
 
     // 8️⃣ Remove pending payment
     if (_id) await deletePendingPayment(_id.toString());

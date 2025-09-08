@@ -5,7 +5,6 @@ import {
   Clipboard,
   FileText,
   Calendar,
-  Gift,
   Users,
   HelpCircle,
 } from "lucide-react";
@@ -25,7 +24,6 @@ import {
   getAllCustomers,
   getCustomersByEmail,
 } from "@/lib/actions/customer.actions";
-import { getAllSellers } from "@/lib/actions/seller.actions";
 import { getAllBanners } from "@/lib/actions/banner.actions";
 import { getAllCategories } from "@/lib/actions/category.actions";
 import { getAllBrands } from "@/lib/actions/brand.actions";
@@ -33,15 +31,9 @@ import { Card } from "@/components/ui/card";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import DashboardStats from "./components/DashboardStats";
-import CustomerStats from "./components/CustomerStats";
-import SellerStats from "./components/SellerStats";
 import { getUserByClerkId, getUserEmailById } from "@/lib/actions/user.actions";
 import { isAdmin } from "@/lib/actions/admin.actions";
 import { useUser } from "@clerk/nextjs";
-import {
-  getAllPayments,
-  getPaymentsByEmail,
-} from "@/lib/actions/payment.actions";
 
 // Register Chart.js components
 ChartJS.register(
@@ -60,12 +52,10 @@ const Dashboard = () => {
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [customers, setCustomers] = useState([]);
-  const [sellers, setSellers] = useState([]);
   const [banners, setBanners] = useState([]);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [adminStatus, setAdminStatus] = useState(false);
-  const [payments, setPayments] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -79,23 +69,17 @@ const Dashboard = () => {
           ? await getAllOrders()
           : await getOrdersByEmail(email);
 
-        const paymentData = adminStatus
-          ? await getAllPayments()
-          : await getPaymentsByEmail(email);
-
         const customersData = adminStatus
           ? await getAllCustomers()
           : await getCustomersByEmail(email);
 
         const [
           productsData,
-          sellersData,
           bannersData,
           categoriesData,
           brandsData,
         ] = await Promise.all([
           getAllProducts(),
-          getAllSellers(),
           getAllBanners(),
           getAllCategories(),
           getAllBrands(),
@@ -103,9 +87,7 @@ const Dashboard = () => {
 
         setProducts(productsData);
         setOrders(ordersData);
-        setPayments(paymentData);
         setCustomers(customersData);
-        setSellers(sellersData);
         setBanners(bannersData);
         setCategories(categoriesData);
         setBrands(brandsData);
@@ -142,13 +124,6 @@ const Dashboard = () => {
           />
           {adminStatus && (
             <DashboardCard
-              icon={<Gift className="text-3xl text-orange-500" />}
-              title="Total Sellers"
-              value={`${sellers.length}`}
-            />
-          )}
-          {adminStatus && (
-            <DashboardCard
               icon={<Users className="text-3xl text-indigo-500" />}
               title="Total Banners"
               value={`${banners.length}`}
@@ -173,18 +148,9 @@ const Dashboard = () => {
 
       <div className="p-4 space-y-4">
         <h2 className="text-2xl font-bold mb-4">Financial Overview</h2>
-        <DashboardStats orders={orders} payments={payments} />
+        <DashboardStats orders={orders} />
       </div>
 
-      <div className="p-4">
-        <h2 className="text-2xl font-bold mb-4">Customer Overview</h2>
-        <CustomerStats customers={customers} />
-      </div>
-
-      <div className="p-4">
-        <h2 className="text-2xl font-bold mb-4">Seller Overview</h2>
-        <SellerStats sellers={sellers} isAdmin={adminStatus} />
-      </div>
     </div>
   );
 };

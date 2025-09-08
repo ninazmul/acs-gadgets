@@ -10,11 +10,9 @@ import SliderCard from "./SliderCard";
 
 interface Props {
   products: IProduct[];
-  isSeller?: boolean;
-  isAdmin?: boolean;
 }
 
-export default function ProductSlider({ products, isSeller, isAdmin }: Props) {
+export default function ProductSlider({ products }: Props) {
   return (
     <Swiper
       modules={[Navigation, Autoplay]}
@@ -30,14 +28,14 @@ export default function ProductSlider({ products, isSeller, isAdmin }: Props) {
         0: { slidesPerView: 1.2 },
         640: { slidesPerView: 1.5 },
         768: { slidesPerView: 2.5 },
-        1024: { slidesPerView: 4 },
+        1024: { slidesPerView: 5 },
       }}
       className="!py-4"
     >
       {products.map((product) => (
         <SwiperSlide key={product._id} className="h-auto">
           <div className="h-full border p-4 rounded-md">
-            <SliderCard {...product} isSeller={isSeller} isAdmin={isAdmin} />
+            <SliderCard {...product} />
           </div>
         </SwiperSlide>
       ))}

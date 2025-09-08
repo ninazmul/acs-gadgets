@@ -1,10 +1,10 @@
 import { IOrder } from "@/lib/database/models/order.model";
-import { ISeller } from "@/lib/database/models/seller.model";
+import { ISetting } from "@/lib/database/models/setting.model";
 import Image from "next/image";
 
 type InvoiceTemplateProps = {
   order: IOrder;
-  seller: ISeller;
+  setting: ISetting;
 };
 
 type OrderProduct = {
@@ -13,12 +13,11 @@ type OrderProduct = {
   sku: string;
   quantity: number;
   price: number;
-  sellingPrice?: number;
 };
 
 export default function InvoiceTemplate({
   order,
-  seller,
+  setting,
 }: InvoiceTemplateProps) {
   const formatDate = (date: Date | string | undefined) =>
     date ? new Date(date).toLocaleDateString() : "N/A";
@@ -31,30 +30,18 @@ export default function InvoiceTemplate({
     <div className="w-[210mm] min-h-[297mm] p-10 bg-white text-gray-800 font-sans">
       {/* Header */}
       <div className="flex justify-between items-center border-b pb-6">
-        {/* Seller Info */}
+        {/* Setting Info */}
         <div className="flex items-center space-x-4">
-          {seller?.shopLogo && (
-            <div className="relative w-24 h-24">
-              <Image
-                src={seller.shopLogo}
-                alt={seller.shopName}
-                fill
-                unoptimized
-                className="object-contain"
-              />
-            </div>
-          )}
-
           <div>
-            <h2 className="text-2xl font-bold">{seller?.shopName || "Shop"}</h2>
-            <p className="text-sm text-gray-600">{seller?.email}</p>
-            <p className="text-sm text-gray-600">{seller?.number}</p>
+            <h2 className="text-2xl font-bold">{setting?.name || "Shop"}</h2>
+            <p className="text-sm text-gray-600">{setting?.email}</p>
+            <p className="text-sm text-gray-600">{setting?.phoneNumber}</p>
           </div>
         </div>
 
         {/* Invoice Info */}
         <div className="text-right">
-          <h1 className="text-4xl font-extrabold text-red-600">INVOICE</h1>
+          <h1 className="text-4xl font-extrabold text-orange-600">INVOICE</h1>
           <p className="mt-2 text-sm">
             <span className="font-semibold">Invoice ID:</span> #
             {order.orderId || order._id}
@@ -109,7 +96,7 @@ export default function InvoiceTemplate({
               <td className="border p-2">{p.sku}</td>
               <td className="border p-2 text-center">{p.quantity}</td>
               <td className="border p-2 text-right">
-                ৳{(p.sellingPrice || p.price).toFixed(2)}
+                ৳{(p.price).toFixed(2)}
               </td>
             </tr>
           ))}
@@ -144,7 +131,7 @@ export default function InvoiceTemplate({
       <div className="mt-12 border-t pt-4 text-center text-xs text-gray-500 space-y-1">
         <p>Thank you for your business!</p>
         <p>
-          {seller?.shopName} • {seller?.email} • {seller?.number}
+          {setting?.name} • {setting?.email} • {setting?.phoneNumber}
         </p>
       </div>
     </div>

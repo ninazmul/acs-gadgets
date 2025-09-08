@@ -6,22 +6,20 @@ type ProductCardProps = {
   _id: string;
   title: string;
   price: string;
+  oldPrice?: string;
   category: string;
   images: {
     imageUrl: string;
   }[];
-  isSeller?: boolean;
-  isAdmin?: boolean;
 };
 
 const ProductCard = ({
   _id,
   title,
   price,
+  oldPrice,
   category,
   images,
-  isSeller,
-  isAdmin,
 }: ProductCardProps) => {
   const firstImage = images?.[0]?.imageUrl || "/assets/images/placeholder.png";
   const secondImage = images?.[1]?.imageUrl || firstImage;
@@ -47,11 +45,19 @@ const ProductCard = ({
           className="object-contain transition-opacity duration-300 ease-in-out opacity-0 group-hover:opacity-100"
         />
       </div>
+
       <div className="p-2 lg:p-4 space-y-1">
-        <h4 className="font-semibold text-sm md:text-md lg:text-lg line-clamp-2">{title}</h4>
-        {(isAdmin || isSeller) && (
+        <h4 className="font-semibold text-sm md:text-md lg:text-lg line-clamp-2">
+          {title}
+        </h4>
+
+        <div className="flex items-center gap-2">
           <p className="text-primary font-bold">৳{price}</p>
-        )}
+          {oldPrice && (
+            <p className="text-gray-400 line-through text-sm">৳{oldPrice}</p>
+          )}
+        </div>
+
         <p className="text-xs text-gray-500">{category}</p>
       </div>
     </a>

@@ -22,8 +22,6 @@ import {
   GalleryThumbnails,
   Tag,
   UserPlus,
-  UserRound,
-  DollarSign,
   Settings,
 } from "lucide-react";
 import Image from "next/image";
@@ -35,7 +33,7 @@ const sidebarItems = [
     title: "Dashboard",
     url: "/dashboard",
     icon: LayoutDashboard,
-    roles: ["admin", "seller"],
+    roles: ["admin"],
   },
   {
     title: "Products",
@@ -47,13 +45,7 @@ const sidebarItems = [
     title: "Orders",
     url: "/dashboard/orders",
     icon: ShoppingCart,
-    roles: ["admin", "seller"],
-  },
-  {
-    title: "Payments",
-    url: "/dashboard/payment",
-    icon: DollarSign,
-    roles: ["admin", "seller"],
+    roles: ["admin"],
   },
   {
     title: "Categories",
@@ -71,19 +63,13 @@ const sidebarItems = [
     title: "Customers",
     url: "/dashboard/customers",
     icon: UserPlus,
-    roles: ["admin", "seller"],
+    roles: ["admin"],
   },
   {
     title: "Sellers",
     url: "/dashboard/sellers",
     icon: Users,
     roles: ["admin"],
-  },
-  {
-    title: "Profile",
-    url: "/dashboard/sellers",
-    icon: UserRound,
-    roles: ["seller"],
   },
   {
     title: "Banners",
@@ -106,12 +92,8 @@ const sidebarItems = [
 ];
 
 const AdminSidebar = ({
-  adminStatus,
-  sellerStatus,
   role,
 }: {
-  adminStatus: boolean;
-  sellerStatus: boolean;
   role?: string;
 }) => {
   const currentPath = usePathname();
@@ -156,24 +138,14 @@ const AdminSidebar = ({
             <SidebarMenu className="space-y-1">
               {sidebarItems
                 .filter((item) => {
-                  if (sellerStatus && !adminStatus) {
-                    return item.roles.includes("seller");
+                  if (role === "Admin") {
+                    return item.roles.includes("admin");
+                  } else if (role === "Moderator") {
+                    return (
+                      item.roles.includes("admin") &&
+                      moderatorAllowed.includes(item.title)
+                    );
                   }
-
-                  if (adminStatus) {
-                    if (role === "Admin") {
-                      return item.roles.includes("admin");
-                    } else if (role === "Moderator") {
-                      return (
-                        item.roles.includes("admin") &&
-                        moderatorAllowed.includes(item.title)
-                      );
-                    } else {
-                      return false;
-                    }
-                  }
-
-                  // Default no access
                   return false;
                 })
                 .map((item) => {

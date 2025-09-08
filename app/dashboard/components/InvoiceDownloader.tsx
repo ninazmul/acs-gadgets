@@ -6,14 +6,14 @@ import html2canvas from "html2canvas";
 import { Download } from "lucide-react";
 import InvoiceTemplate from "./InvoiceTemplate";
 import { IOrder } from "@/lib/database/models/order.model";
-import { ISeller } from "@/lib/database/models/seller.model";
+import { ISetting } from "@/lib/database/models/setting.model";
 
 export default function InvoiceDownloader({
   order,
-  seller,
+  setting,
 }: {
   order: IOrder;
-  seller: ISeller;
+  setting: ISetting;
 }) {
   const invoiceRef = useRef<HTMLDivElement>(null);
 
@@ -49,7 +49,7 @@ export default function InvoiceDownloader({
 
       {/* Hidden Invoice Template */}
       <div ref={invoiceRef} className="absolute left-[-9999px] top-0">
-        <InvoiceTemplate order={order} seller={seller} />
+        <InvoiceTemplate order={order} setting={setting} />
       </div>
     </div>
   );

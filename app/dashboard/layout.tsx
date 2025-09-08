@@ -10,7 +10,6 @@ import { cookies } from "next/headers";
 import { SignedIn, UserButton } from "@clerk/nextjs";
 import { Toaster } from "react-hot-toast";
 import Breadcrumbs from "@/components/shared/Breadcrumbs";
-import { isSeller } from "@/lib/actions/seller.actions";
 
 export default async function AdminLayout({
   children,
@@ -26,19 +25,14 @@ export default async function AdminLayout({
   const email = await getUserEmailById(userId);
   const adminStatus = await isAdmin(email);
   const role = await getAdminRole(email);
-  const sellerStatus = await isSeller(email);
 
-  if (!adminStatus && !sellerStatus) {
+  if (!adminStatus) {
     redirect("/");
   }
 
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
-      <AdminSidebar
-        adminStatus={adminStatus}
-        sellerStatus={sellerStatus}
-        role={role || ""}
-      />
+      <AdminSidebar role={role || ""} />
       <Toaster />
       <main className="flex-1 h-screen mx-auto overflow-y-auto">
         <div className="flex justify-between items-center p-4 w-full border-b text-white bg-primary-900">

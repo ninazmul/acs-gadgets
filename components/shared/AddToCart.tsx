@@ -25,8 +25,6 @@ type Product = {
   title: string;
   images: { imageUrl: string; _id: string }[];
   price: string | number;
-  suggestedPrice?: string | number;
-  sellingPrice?: string | number;
   category: string;
   brand?: string;
   sku: string;
@@ -37,17 +35,14 @@ type CartItem = {
   productId: string;
   quantity: number;
   variations?: Variation[];
-  sellingPrice: number;
 };
 
 type AddToCartProps = {
   product: Product;
   email: string;
-  isSeller?: boolean;
-  isAdmin?: boolean;
 };
 
-const AddToCart = ({ product, email, isSeller, isAdmin }: AddToCartProps) => {
+const AddToCart = ({ product, email }: AddToCartProps) => {
   const [loading, setLoading] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [selectedVariation, setSelectedVariation] = useState<Variation | null>(
@@ -55,42 +50,17 @@ const AddToCart = ({ product, email, isSeller, isAdmin }: AddToCartProps) => {
   );
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
-  const [priceType, setPriceType] = useState<"suggested" | "custom">(
-    "suggested"
-  );
-  const [customPrice, setCustomPrice] = useState("");
-
-  // Original base price (does not change)
-  const originalPrice = parseFloat(product.price.toString());
-
-  // Selected base price (either suggested or custom)
-  const selectedBasePrice =
-    priceType === "custom"
-      ? parseFloat(customPrice || "0")
-      : parseFloat(
-          product.sellingPrice?.toString() ||
-            product.suggestedPrice?.toString() ||
-            product.price.toString()
-        );
-
-  // Additional price from variation
+  const basePrice = parseFloat(product.price.toString());
   const additionalPrice = selectedVariation?.additionalPrice
     ? parseFloat(selectedVariation.additionalPrice.toString())
     : 0;
-
-  // Final selling price per unit
-  const finalPrice = selectedBasePrice + additionalPrice;
+  const finalPrice = basePrice + additionalPrice;
 
   useEffect(() => {
     const fetchCart = async () => {
       try {
         const items = await getCartsByEmail(email);
-        setCartItems(
-          (items || []).map((item: CartItem) => ({
-            ...item,
-            sellingPrice: parseFloat(item.sellingPrice?.toString() || "0"),
-          }))
-        );
+        setCartItems(items || []);
       } catch (err) {
         console.error("Failed to load cart", err);
       }
@@ -103,65 +73,24 @@ const AddToCart = ({ product, email, isSeller, isAdmin }: AddToCartProps) => {
       if (item.productId !== product._id) return false;
       if (item.quantity !== quantity) return false;
 
-      // Compare variations
-      if (item.variations?.length !== (selectedVariation ? 1 : 0)) return false;
-
       if (selectedVariation && item.variations) {
-        const match = item.variations.some(
-          (v) =>
-            v.name === selectedVariation.name &&
-            v.value === selectedVariation.value &&
-            parseFloat(v.additionalPrice?.toString() || "0") ===
-              parseFloat(selectedVariation.additionalPrice?.toString() || "0")
+        return item.variations.some(
+          (v) => v.name === selectedVariation.name && v.value === selectedVariation.value
         );
-        if (!match) return false;
       }
 
-      // Compare price — if different, allow adding again
-      if (item.sellingPrice !== finalPrice) {
-        return false;
-      }
-
-      return true;
+      return !selectedVariation && (!item.variations || item.variations.length === 0);
     });
   };
 
   const handleAddToCart = async () => {
-    if (
-      product.variations &&
-      product.variations.length > 0 &&
-      !selectedVariation
-    ) {
+    if (product.variations && product.variations.length > 0 && !selectedVariation) {
       toast.error("Please select a variation before adding to cart.");
       return;
     }
 
-    if (
-      priceType === "custom" &&
-      (!customPrice || isNaN(Number(customPrice)))
-    ) {
-      toast.error("Please enter a valid custom price.");
-      return;
-    }
-
-    if (priceType === "custom") {
-      const suggested = parseFloat(
-        product.sellingPrice?.toString() ||
-          product.suggestedPrice?.toString() ||
-          product.price.toString()
-      );
-      const entered = parseFloat(customPrice || "0");
-
-      if (entered < suggested) {
-        toast.error(`Custom price cannot be lower than ৳${suggested}.`);
-        return;
-      }
-    }
-
     if (isAlreadyInCart()) {
-      toast.error(
-        "This exact product with selected variation, quantity, and price is already in your cart."
-      );
+      toast.error("This product with the same variation and quantity is already in your cart.");
       return;
     }
 
@@ -172,20 +101,12 @@ const AddToCart = ({ product, email, isSeller, isAdmin }: AddToCartProps) => {
         productId: product._id,
         title: product.title,
         images: product.images?.[0]?.imageUrl || "",
-        price: originalPrice,
-        sellingPrice: finalPrice,
+        price: finalPrice,
         quantity,
         category: product.category,
         brand: product.brand,
         sku: product.sku,
-        variations: selectedVariation
-          ? [
-              {
-                name: selectedVariation.name,
-                value: selectedVariation.value,
-              },
-            ]
-          : [],
+        variations: selectedVariation ? [selectedVariation] : [],
         email,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -198,13 +119,10 @@ const AddToCart = ({ product, email, isSeller, isAdmin }: AddToCartProps) => {
           productId: product._id,
           quantity,
           variations: selectedVariation ? [selectedVariation] : [],
-          sellingPrice: finalPrice,
         },
       ]);
       setQuantity(1);
       setSelectedVariation(null);
-      setPriceType("suggested");
-      setCustomPrice("");
     } catch (err) {
       toast.error("Something went wrong while adding to cart.");
       console.error("Add to cart failed:", err);
@@ -224,6 +142,7 @@ const AddToCart = ({ product, email, isSeller, isAdmin }: AddToCartProps) => {
               const variant = product.variations?.find((v) => v.value === val);
               setSelectedVariation(variant || null);
             }}
+            value={selectedVariation?.value || ""}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select Variation" />
@@ -243,36 +162,6 @@ const AddToCart = ({ product, email, isSeller, isAdmin }: AddToCartProps) => {
         </div>
       )}
 
-      {/* Price Type Selector */}
-      <div className="space-y-1">
-        <Label>Selling Price</Label>
-        <Select
-          onValueChange={(val) => setPriceType(val as "suggested" | "custom")}
-          defaultValue="suggested"
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Choose price type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="suggested">Suggested Price</SelectItem>
-            <SelectItem value="custom">Custom Price</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Custom Price Input */}
-      {priceType === "custom" && (
-        <div className="space-y-1">
-          <Label>Enter Custom Price</Label>
-          <Input
-            type="number"
-            min={1}
-            value={customPrice}
-            onChange={(e) => setCustomPrice(e.target.value)}
-          />
-        </div>
-      )}
-
       {/* Quantity Input */}
       <div className="space-y-1">
         <Label>Quantity</Label>
@@ -285,21 +174,16 @@ const AddToCart = ({ product, email, isSeller, isAdmin }: AddToCartProps) => {
       </div>
 
       {/* Price Display */}
-      {(isAdmin || isSeller) && (
-        <div className="font-semibold text-lg">
-          Total: ৳{(finalPrice * quantity).toFixed(2)}
-        </div>
-      )}
+      <div className="font-semibold text-lg">
+        Total: ৳{(finalPrice * quantity).toFixed(2)}
+      </div>
 
       {/* Add to Cart Button */}
       <Button
         onClick={handleAddToCart}
         disabled={
           loading ||
-          (!isAdmin && !isSeller) ||
-          (!!product.variations &&
-            product.variations.length > 0 &&
-            !selectedVariation)
+          (!!product.variations && product.variations.length > 0 && !selectedVariation)
         }
         className="w-full"
       >

@@ -69,7 +69,6 @@ export interface CartParams {
   title: string;
   images: string;
   price: number;
-  sellingPrice: number;
   quantity: number;
   category: string;
   brand?: string;
@@ -160,38 +159,6 @@ export type OrderParams = {
 
   note?: string;
   adminNote?: string;
-};
-
-export interface SellerParams {
-  name: string;
-  email: string;
-  number: string;
-  shopName: string;
-  shopLogo: string;
-  district: string;
-  address: string;
-  website?: string;
-  totalOrders?: number;
-  totalSpend?: number;
-  successfulOrder?: number;
-  canceledOrder?: number;
-  totalPaid?: number;
-  totalDue?: number;
-  status?: string;
-  transactionId: string;
-  amount: number;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-// ====== PAYMENT PARAMS
-export type PaymentParams = {
-  seller: string;
-  amount: string;
-  paymentMethod: string;
-  accountDetails?: string;
-  progress: string;
-  createdAt: Date;
 };
 
 // ====== SETTING PARAMS
