@@ -58,7 +58,6 @@ export interface ProductParams {
 
 export interface CategoryParams {
   title: string;
-  image: string;
 }
 
 export interface BrandParams {

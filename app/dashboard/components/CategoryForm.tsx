@@ -8,21 +8,17 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
 import { createCategory, updateCategory } from "@/lib/actions/category.actions";
-import { useUploadThing } from "@/lib/uploadthing";
-import { FileUploader } from "@/components/shared/FileUploader";
 import { ICategory } from "@/lib/database/models/category.model";
 import toast from "react-hot-toast";
 
 export const categoryFormSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters."),
-  image: z.string().min(1, "Image is required"),
 });
 
 type CategoryFormProps = {
@@ -33,13 +29,11 @@ type CategoryFormProps = {
 
 const CategoryForm = ({ type, category, categoryId }: CategoryFormProps) => {
   const router = useRouter();
-  const { startUpload } = useUploadThing("imageUploader");
 
   const form = useForm<z.infer<typeof categoryFormSchema>>({
     resolver: zodResolver(categoryFormSchema),
     defaultValues: {
       title: category?.title || "",
-      image: category?.image || "",
     },
   });
 
@@ -80,32 +74,6 @@ const CategoryForm = ({ type, category, categoryId }: CategoryFormProps) => {
             <FormItem className="w-full">
               <FormControl>
                 <Input placeholder="Title" {...field} className="input-field" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Image Upload */}
-        <FormField
-          control={form.control}
-          name="image"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Upload Image</FormLabel>
-              <FormControl>
-                <FileUploader
-                  imageUrl={field.value}
-                  onFieldChange={async (_blobUrl, files) => {
-                    if (files && files.length > 0) {
-                      const uploaded = await startUpload(files);
-                      if (uploaded && uploaded[0]) {
-                        form.setValue("image", uploaded[0].url);
-                      }
-                    }
-                  }}
-                  setFiles={() => {}}
-                />
               </FormControl>
               <FormMessage />
             </FormItem>

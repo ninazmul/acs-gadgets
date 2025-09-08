@@ -13,7 +13,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Trash, SortAsc, SortDesc, Edit2 } from "lucide-react";
-import Image from "next/image";
 import toast from "react-hot-toast";
 
 const CategoryTable = ({
@@ -22,7 +21,6 @@ const CategoryTable = ({
   categories: Array<{
     _id: string;
     title: string;
-    image: string;
   }>;
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -101,7 +99,6 @@ const CategoryTable = ({
                   (sortOrder === "asc" ? <SortAsc /> : <SortDesc />)}
               </div>
             </TableHead>
-            <TableHead>Image</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -114,15 +111,6 @@ const CategoryTable = ({
               </TableCell>
               <TableCell>
                 <a href={`/categories/${category._id}`}>{category.title}</a>
-              </TableCell>
-              <TableCell>
-                <Image
-                  src={category.image}
-                  alt="Category Image"
-                  height={100}
-                  width={100}
-                  className="w-14 h-14 object-contain rounded-full"
-                />
               </TableCell>
               <TableCell className="flex items-center space-x-2">
                 <a href={`/dashboard/categories/${category._id}/update`}>
