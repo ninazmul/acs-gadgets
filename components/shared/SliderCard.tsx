@@ -29,30 +29,32 @@ const SliderCard = ({
       href={`/products/${_id}`}
       className="group block transition-transform transform hover:scale-[1.02] duration-300"
     >
-      <div className="w-full h-64 relative overflow-hidden rounded-md bg-gray-100">
+      <div className="w-full h-24 md:h-36 lg:h-64 relative overflow-hidden rounded-md bg-gray-100">
         {/* First Image (default) */}
         <Image
           src={firstImage}
           alt={title}
           fill
-          className="object-contain transition-opacity duration-300 ease-in-out group-hover:opacity-0 rounded-md"
+          className="object-contain transition-opacity duration-300 ease-in-out group-hover:opacity-0"
         />
         {/* Second Image (hover) */}
         <Image
           src={secondImage}
           alt={`${title} alt`}
           fill
-          className="object-contain transition-opacity duration-300 ease-in-out opacity-0 group-hover:opacity-100 rounded-md"
+          className="object-contain transition-opacity duration-300 ease-in-out opacity-0 group-hover:opacity-100"
         />
       </div>
 
-      <div className="mt-2 space-y-1 px-1">
-        <h4 className="font-semibold text-base line-clamp-2">{title}</h4>
+      <div className="p-2 lg:p-4 space-y-1">
+        <h4 className="font-semibold text-sm md:text-md lg:text-lg line-clamp-2">
+          {title}
+        </h4>
 
         <div className="flex items-center gap-2">
-          <p className="text-primary font-bold text-sm">৳{price}</p>
+          <p className="text-primary font-bold">৳{price}</p>
           {oldPrice && (
-            <p className="text-gray-400 line-through text-xs">৳{oldPrice}</p>
+            <p className="text-gray-400 line-through text-sm">৳{oldPrice}</p>
           )}
         </div>
 
