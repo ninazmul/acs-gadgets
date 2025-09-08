@@ -128,7 +128,7 @@ const AdminSidebar = ({
 
   return (
     <Sidebar
-      className="text-primary-900 font-semibold font-serif"
+      className="text-primary-600 font-semibold font-serif"
       collapsible="icon"
     >
       <SidebarContent>
@@ -141,7 +141,7 @@ const AdminSidebar = ({
                 height={40}
                 alt={settings?.name || "Logo"}
               />
-              <h1 className="text-lg font-serif font-bold text-primary-900">
+              <h1 className="text-lg font-serif font-bold text-primary-600">
                 <span className="text-red-600">
                   {settings?.name?.split(" ")[0]}
                 </span>
@@ -189,7 +189,7 @@ const AdminSidebar = ({
                         <a
                           href={item.url}
                           className={`flex items-center space-x-2 px-4 py-2 rounded-md ${
-                            isActive ? "bg-primary-900 text-white" : ""
+                            isActive ? "bg-primary-600 text-white" : ""
                           }`}
                         >
                           <item.icon className="w-5 h-5" />
