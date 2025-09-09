@@ -19,9 +19,24 @@ export const getAllProducts = async () => {
   try {
     await connectToDatabase();
 
-    const products = await Product.find();
+    const localProducts = await Product.find();
+    const parsedLocalProducts = JSON.parse(JSON.stringify(localProducts));
 
-    return JSON.parse(JSON.stringify(products));
+    const response = await fetch("https://dropandshipping.com/api/products", {
+      headers: {
+        "Authorization": `Bearer ${process.env.PRODUCTS_API_KEY}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch external products");
+    }
+
+    const externalProducts = await response.json();
+
+    const allProducts = [...parsedLocalProducts, ...externalProducts];
+
+    return allProducts;
   } catch (error) {
     handleError(error);
   }
