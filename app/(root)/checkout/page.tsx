@@ -16,7 +16,6 @@ type CartItem = {
   title: string;
   images: string;
   price: number;
-  sellingPrice: number;
   quantity: number;
   category: string;
   brand: string;
@@ -60,18 +59,21 @@ export default function CheckoutPage() {
   const subtotal = useMemo(
     () =>
       cartItems.reduce(
-        (sum, item) => sum + (item.sellingPrice || 0) * item.quantity,
+        (sum, item) => sum + (item.price ?? 0) * item.quantity,
         0
       ),
     [cartItems]
   );
 
-  const ADVANCE_AMOUNT = useMemo(
-    () => (paymentMethod === "bkash" ? subtotal + shipping : 200),
-    [paymentMethod, subtotal, shipping]
+  const total = useMemo(
+    () => (subtotal ?? 0) + (shipping ?? 0),
+    [subtotal, shipping]
   );
 
-  const total = useMemo(() => subtotal + shipping, [subtotal, shipping]);
+  const ADVANCE_AMOUNT = useMemo(
+    () => (paymentMethod === "bkash" ? (subtotal ?? 0) + (shipping ?? 0) : 200),
+    [paymentMethod, subtotal, shipping]
+  );
 
   // Fetch cart data
   useEffect(() => {
@@ -79,7 +81,9 @@ export default function CheckoutPage() {
       if (!user?.id) return;
       try {
         setIsCartLoading(true);
-        const items = await getCartsByEmail(user.emailAddresses?.[0]?.emailAddress || "");
+        const items = await getCartsByEmail(
+          user.emailAddresses?.[0]?.emailAddress || ""
+        );
         setCartItems(items || []);
       } catch {
         toast.error("Failed to load cart items.");
@@ -111,7 +115,12 @@ export default function CheckoutPage() {
 
   const initiateBkashPayment = async () => {
     // validate customer
-    if (!customer.name || !customer.email || !customer.number || !customer.address) {
+    if (
+      !customer.name ||
+      !customer.email ||
+      !customer.number ||
+      !customer.address
+    ) {
       toast.error("Please fill in all customer details.");
       return;
     }
@@ -228,8 +237,12 @@ export default function CheckoutPage() {
                     className="rounded border h-20 w-14 object-cover"
                   />
                   <div className="flex-1">
-                    <p className="text-sm font-medium line-clamp-1">{item.title}</p>
-                    <p className="text-xs text-muted-foreground">x {item.quantity}</p>
+                    <p className="text-sm font-medium line-clamp-1">
+                      {item.title}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      x {item.quantity}
+                    </p>
                     {Array.isArray(item.variations) &&
                       item.variations.length > 0 && (
                         <div className="text-xs text-gray-500 space-y-1 mt-1">
@@ -243,8 +256,8 @@ export default function CheckoutPage() {
                   </div>
                 </div>
                 <p className="text-sm font-semibold">
-                  ৳{item.sellingPrice.toFixed(2)} * {item.quantity} = ৳
-                  {(item.sellingPrice * item.quantity).toFixed(2)}
+                  ৳{item.price.toFixed(2)} * {item.quantity} = ৳
+                  {(item.price * item.quantity).toFixed(2)}
                 </p>
               </div>
             ))}
