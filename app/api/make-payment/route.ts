@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     });
 
     // 2️⃣ Create bKash payment
-    const myUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? "https://dropandshipping.com";
+    const myUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? "https://acsgadgets.com";
 
     const paymentDetails = {
       amount: paymentMethod === "bkash" ? total : 200, // full or advance
