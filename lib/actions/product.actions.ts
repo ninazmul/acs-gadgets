@@ -34,18 +34,16 @@ export const getAllProducts = async () => {
         }
       );
 
-      if (Array.isArray(response.data)) {
-        externalProducts = response.data;
-      } else if (Array.isArray(response.data.products)) {
+      if (Array.isArray(response.data.products)) {
         externalProducts = response.data.products;
       } else {
         console.warn(
-          "External products response is not an array:",
+          "External products response format unexpected:",
           response.data
         );
       }
-    } catch (error) {
-      console.warn("Error fetching external products:", error);
+    } catch (Error) {
+      console.warn("Error fetching external products:", Error);
     }
 
     return [...parsedLocalProducts, ...externalProducts];
