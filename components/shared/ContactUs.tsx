@@ -98,7 +98,7 @@ export default function ContactUs() {
 
   if (!settings)
     return (
-      <div className="flex items-center justify-center min-h-screen text-red-600">
+      <div className="flex items-center justify-center min-h-screen text-primary-600">
         Failed to load settings.
       </div>
     );
@@ -124,7 +124,7 @@ export default function ContactUs() {
         )}
 
         {status === "FAILED" && (
-          <p className="text-center text-red-600 font-semibold mb-10">
+          <p className="text-center text-primary-600 font-semibold mb-10">
             Failed to send the message. Please try again.
           </p>
         )}
@@ -143,7 +143,7 @@ export default function ContactUs() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={name}
-                    className="flex items-center gap-3 p-3 bg-red-600 text-white rounded-md shadow-md hover:bg-red-700 transition"
+                    className="flex items-center gap-3 p-3 bg-primary-600 text-white rounded-md shadow-md hover:bg-primary-700 transition"
                   >
                     <span className="text-lg">{icon}</span>
                   </Link>
@@ -235,8 +235,8 @@ export default function ContactUs() {
               disabled={loading}
               className={`w-full py-3 font-semibold text-lg ${
                 loading
-                  ? "bg-red-400 cursor-not-allowed"
-                  : "bg-red-600 hover:bg-red-700"
+                  ? "bg-primary-500 cursor-not-allowed"
+                  : "bg-primary-600 hover:bg-primary-600"
               } text-white rounded-md transition`}
             >
               {loading ? "Sending..." : "Send Message"}

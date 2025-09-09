@@ -14,7 +14,7 @@ export default async function ContactPage() {
       <section className="max-w-7xl mx-auto space-y-8 p-4">
         <div className="wrapper max-w-5xl mx-auto px-6">
           <h1 className="text-4xl font-extrabold mb-8 text-gray-900 dark:text-white">
-            Contact <span className="text-red-600">{settings.name}</span>
+            Contact <span className="text-primary-600">{settings.name}</span>
           </h1>
         </div>
         <ContactUs />
