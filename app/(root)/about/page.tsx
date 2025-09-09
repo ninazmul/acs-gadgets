@@ -51,11 +51,11 @@ export default async function AboutPage() {
     <section className="py-12 bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="wrapper max-w-5xl mx-auto px-6">
         <h1 className="text-4xl font-extrabold mb-8 text-gray-900 dark:text-white">
-          About <span className="text-red-600">{settings.name}</span>
+          About <span className="text-primary-600">{settings.name}</span>
         </h1>
 
         {settings.tagline && (
-          <p className="mb-8 text-xl italic text-gray-600 dark:text-gray-400 border-l-4 border-red-600 pl-4">
+          <p className="mb-8 text-xl italic text-gray-600 dark:text-gray-400 border-l-4 border-primary-600 pl-4">
             {settings.tagline}
           </p>
         )}
@@ -111,20 +111,20 @@ export default async function AboutPage() {
             </h2>
 
             <p className="mb-4 text-gray-700 dark:text-gray-300 flex items-center gap-3">
-              <FaEnvelope className="text-red-600" />
+              <FaEnvelope className="text-primary-600" />
               <a
                 href={`mailto:${settings.email}`}
-                className="text-red-600 hover:text-red-700 dark:hover:text-red-400 transition"
+                className="text-primary-600 hover:text-primary-700 dark:hover:text-primary-400 transition"
               >
                 {settings.email}
               </a>
             </p>
 
             <p className="mb-4 text-gray-700 dark:text-gray-300 flex items-center gap-3">
-              <FaPhone className="text-red-600" />
+              <FaPhone className="text-primary-600" />
               <a
                 href={`tel:${settings.phoneNumber}`}
-                className="text-red-600 hover:text-red-700 dark:hover:text-red-400 transition"
+                className="text-primary-600 hover:text-primary-700 dark:hover:text-primary-400 transition"
               >
                 {settings.phoneNumber}
               </a>
@@ -132,7 +132,7 @@ export default async function AboutPage() {
 
             {settings.address && (
               <p className="text-gray-700 dark:text-gray-300 flex items-center gap-3">
-                <FaMapMarkerAlt className="text-red-600" />
+                <FaMapMarkerAlt className="text-primary-600" />
                 {settings.address}
               </p>
             )}
@@ -151,7 +151,7 @@ export default async function AboutPage() {
                     href={href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 px-4 py-2 bg-red-600 text-white rounded-md shadow-md hover:bg-red-700 transition"
+                    className="flex items-center gap-3 px-4 py-2 bg-primary-600 text-white rounded-md shadow-md hover:bg-primary-700 transition"
                     aria-label={label}
                   >
                     <span className="text-lg">{icon}</span>
