@@ -24,26 +24,25 @@ export const getAllProducts = async () => {
     const parsedLocalProducts = JSON.parse(JSON.stringify(localProducts));
 
     let externalProducts: IProduct[] = [];
+
     try {
       const response = await axios.get(
         "https://dropandshipping.com/api/products",
         {
           headers: {
-            Authorization: `Bearer ${process.env.PRODUCTS_API_KEY}`,
+            "x-api-key": process.env.PRODUCTS_API_KEY,
           },
         }
       );
 
-      if (Array.isArray(response.data.products)) {
-        externalProducts = response.data.products;
+      if (!response.data || !Array.isArray(response.data.products)) {
+        console.warn("External API returned unexpected data:", response.data);
       } else {
-        console.warn(
-          "External products response format unexpected:",
-          response.data
-        );
+        externalProducts = response.data.products;
+        console.log("External products fetched:", externalProducts.length);
       }
-    } catch (Error) {
-      console.warn("Error fetching external products:", Error);
+    } catch (err) {
+      console.error("Failed to fetch external products:", err);
     }
 
     return [...parsedLocalProducts, ...externalProducts];
