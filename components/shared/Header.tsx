@@ -47,7 +47,7 @@ export default function Header() {
   const { user } = useUser();
   const router = useRouter();
   const [adminStatus, setAdminStatus] = useState(false);
-  const [Email, setEmail] = useState();
+  const [Email, setEmail] = useState<string>("");
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [initialLoad, setInitialLoad] = useState(true);
   const [sheetOpen, setSheetOpen] = useState(false);

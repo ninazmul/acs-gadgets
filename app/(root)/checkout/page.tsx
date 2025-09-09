@@ -1,17 +1,15 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { getCartsByEmail } from "@/lib/actions/cart.actions";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { getCustomersByEmail } from "@/lib/actions/customer.actions";
 import { useUser } from "@clerk/nextjs";
-import { getUserByClerkId, getUserEmailById } from "@/lib/actions/user.actions";
-import RootCustomerForm from "@/components/shared/RootCustomerForm";
 import axios from "axios";
 import Loader from "@/components/shared/Loader";
+import { getUserByClerkId, getUserEmailById } from "@/lib/actions/user.actions";
 
 type CartItem = {
   _id: string;
@@ -31,7 +29,6 @@ type CartItem = {
 };
 
 type Customer = {
-  _id: string;
   name: string;
   email: string;
   number: string;
@@ -43,18 +40,38 @@ type Customer = {
 export default function CheckoutPage() {
   const router = useRouter();
   const { user } = useUser();
-  const [userEmail, setUserEmail] = useState("");
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
-    null
-  );
+
+  const [Email, setEmail] = useState<string>("");
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [note, setNote] = useState("");
-  const [shipping, setShipping] = useState<number>(110);
   const [isCartLoading, setIsCartLoading] = useState(true);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [note, setNote] = useState("");
+  const [shipping, setShipping] = useState<number>(110);
   const [paymentMethod, setPaymentMethod] = useState<"bkash" | "cod">("cod");
+
+  useEffect(() => {
+    if (!user?.id) return;
+    (async () => {
+      try {
+        const userID = await getUserByClerkId(user.id);
+        const email = await getUserEmailById(userID);
+        setEmail(email);
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to fetch user email.");
+      }
+    })();
+  }, [user?.id]);
+
+  const [customer, setCustomer] = useState<Customer>({
+    name: "",
+    email: Email || "",
+    number: "",
+    address: "",
+    areaOfDelivery: "",
+    district: "",
+  });
 
   const subtotal = useMemo(
     () =>
@@ -65,55 +82,31 @@ export default function CheckoutPage() {
     [cartItems]
   );
 
-  const ADVANCE_AMOUNT = useMemo(() => {
-    return paymentMethod === "bkash" ? subtotal + shipping : 200;
-  }, [paymentMethod, subtotal, shipping]);
+  const ADVANCE_AMOUNT = useMemo(
+    () => (paymentMethod === "bkash" ? subtotal + shipping : 200),
+    [paymentMethod, subtotal, shipping]
+  );
 
   const total = useMemo(() => subtotal + shipping, [subtotal, shipping]);
 
+  // Fetch cart data
   useEffect(() => {
-    const fetchCustomers = async () => {
+    const fetchCartData = async () => {
       if (!user?.id) return;
       try {
-        const userID = await getUserByClerkId(user.id);
-        const email = await getUserEmailById(userID);
-        const result = await getCustomersByEmail(email);
-        setCustomers(result || []);
+        setIsCartLoading(true);
+        const items = await getCartsByEmail(Email || "");
+        setCartItems(items || []);
       } catch {
-        toast.error("Failed to load customers.");
+        toast.error("Failed to load cart items.");
       } finally {
+        setIsCartLoading(false);
         setIsLoading(false);
       }
     };
 
-    fetchCustomers();
-    const intervalId = setInterval(fetchCustomers, 3000);
-    return () => clearInterval(intervalId);
-  }, [user?.id]);
-
-  const fetchCartData = useCallback(async () => {
-    if (!user?.id) return;
-    try {
-      setIsCartLoading(true);
-      const userID = await getUserByClerkId(user.id);
-      const email = await getUserEmailById(userID);
-      const items = await getCartsByEmail(email);
-
-      setUserEmail(email);
-      setCartItems(items || []);
-    } catch {
-      toast.error("Failed to load cart items.");
-    } finally {
-      setIsCartLoading(false);
-      setIsLoading(false);
-    }
-  }, [user?.id]);
-
-  useEffect(() => {
     fetchCartData();
-    const interval = setInterval(fetchCartData, 3000);
-    return () => clearInterval(interval);
-  }, [fetchCartData]);
+  }, [Email, user?.id]);
 
   if (!isLoading && !isCartLoading && cartItems.length === 0) {
     router.push("/products");
@@ -123,33 +116,45 @@ export default function CheckoutPage() {
     return <Loader />;
   }
 
+  const handleCustomerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setCustomer((prev) => ({ ...prev, [name]: value }));
+
+    if (name === "district") {
+      setShipping(value.toLowerCase() === "dhaka" ? 60 : 120);
+    }
+  };
+
   const initiateBkashPayment = async () => {
-    if (!selectedCustomer) {
-      toast.error("Select a customer first.");
+    // validate customer
+    if (
+      !customer.name ||
+      !customer.email ||
+      !customer.number ||
+      !customer.address
+    ) {
+      toast.error("Please fill in all customer details.");
       return;
     }
 
     try {
       setIsPlacingOrder(true);
-
       const reference = "user_" + Date.now();
 
       const paymentPayload = {
-        customer: selectedCustomer,
+        customer,
         cartItems,
         note,
         shipping,
         subtotal,
         total,
         paymentMethod,
-        userEmail,
         reference,
       };
 
       const response = await axios.post("/api/make-payment", paymentPayload);
 
       if (response.data?.url) {
-        // redirect to bKash gateway
         router.push(response.data.url);
       } else {
         console.error("bKash Payment initiation error:", response.data);
@@ -168,86 +173,57 @@ export default function CheckoutPage() {
       <h1 className="text-2xl font-bold">Shipping and Checkout</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-        {/* Customer Section */}
+        {/* Customer Form */}
         <div className="space-y-4">
-          <label className="block font-semibold">Select Customer:</label>
-          <select
+          <h2 className="text-lg font-semibold">Customer Details</h2>
+          <input
+            type="text"
+            name="name"
+            placeholder="Full Name"
+            value={customer.name}
+            onChange={handleCustomerChange}
             className="w-full border p-2 rounded"
-            onChange={(e) => {
-              const customer = customers.find(
-                (c) => c.email === e.target.value
-              );
-              if (customer) {
-                setSelectedCustomer(customer);
-                setShipping(
-                  customer.district.toLowerCase() === "dhaka" ? 60 : 120
-                );
-              } else {
-                setSelectedCustomer(null);
-                setShipping(110);
-              }
-            }}
-            value={selectedCustomer?.email || ""}
-          >
-            <option value="">-- Select --</option>
-            {customers.map((c) => (
-              <option key={c._id} value={c.email}>
-                {c.name} ({c.email})
-              </option>
-            ))}
-          </select>
-
-          {isLoading ? (
-            <Loader />
-          ) : selectedCustomer ? (
-            <>
-              <div className="grid grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  value={selectedCustomer.name}
-                  readOnly
-                  className="border p-2 rounded"
-                />
-                <input
-                  type="text"
-                  value={selectedCustomer.number}
-                  readOnly
-                  className="border p-2 rounded"
-                />
-              </div>
-              <input
-                type="text"
-                value={selectedCustomer.address}
-                readOnly
-                className="w-full border p-2 rounded"
-              />
-              <div className="grid grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  value={selectedCustomer.district}
-                  readOnly
-                  className="border p-2 rounded"
-                />
-                <input
-                  type="text"
-                  value={selectedCustomer.areaOfDelivery}
-                  readOnly
-                  className="border p-2 rounded"
-                />
-              </div>
-              <input
-                type="email"
-                value={selectedCustomer.email}
-                readOnly
-                className="w-full border p-2 rounded"
-              />
-            </>
-          ) : (
-            <>
-              <label className="block font-semibold">Create Customer:</label>
-              <RootCustomerForm type="Create" email={userEmail} />
-            </>
-          )}
+          />
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            value={customer.email}
+            onChange={handleCustomerChange}
+            className="w-full border p-2 rounded"
+          />
+          <input
+            type="text"
+            name="number"
+            placeholder="Phone Number"
+            value={customer.number}
+            onChange={handleCustomerChange}
+            className="w-full border p-2 rounded"
+          />
+          <input
+            type="text"
+            name="address"
+            placeholder="Address"
+            value={customer.address}
+            onChange={handleCustomerChange}
+            className="w-full border p-2 rounded"
+          />
+          <input
+            type="text"
+            name="areaOfDelivery"
+            placeholder="Area of Delivery"
+            value={customer.areaOfDelivery}
+            onChange={handleCustomerChange}
+            className="w-full border p-2 rounded"
+          />
+          <input
+            type="text"
+            name="district"
+            placeholder="District"
+            value={customer.district}
+            onChange={handleCustomerChange}
+            className="w-full border p-2 rounded"
+          />
 
           <textarea
             placeholder="Order Notes (optional)"
@@ -257,7 +233,7 @@ export default function CheckoutPage() {
           />
         </div>
 
-        {/* Order Summary Section */}
+        {/* Order Summary */}
         <div className="space-y-4 border rounded-lg p-4 shadow-sm">
           <h2 className="text-lg font-semibold mb-4">Your Order</h2>
 
@@ -282,10 +258,9 @@ export default function CheckoutPage() {
                     {Array.isArray(item.variations) &&
                       item.variations.length > 0 && (
                         <div className="text-xs text-gray-500 space-y-1 mt-1">
-                          {item.variations.map((variation, index) => (
-                            <p key={index}>
-                              {variation.name}:{" "}
-                              <strong>{variation.value}</strong>
+                          {item.variations.map((v, i) => (
+                            <p key={i}>
+                              {v.name}: <strong>{v.value}</strong>
                             </p>
                           ))}
                         </div>
@@ -339,9 +314,7 @@ export default function CheckoutPage() {
 
           <Button
             onClick={initiateBkashPayment}
-            disabled={
-              isPlacingOrder || !selectedCustomer || cartItems.length === 0
-            }
+            disabled={isPlacingOrder || cartItems.length === 0}
             className="mb-4 w-full"
           >
             {isPlacingOrder
