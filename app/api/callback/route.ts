@@ -73,7 +73,7 @@ const bkashConfig = {
 // --- GET handler ---
 export async function GET(req: NextRequest) {
   const myUrl =
-    process.env.NEXT_PUBLIC_SERVER_URL ?? "https://dropandshipping.com";
+    process.env.NEXT_PUBLIC_SERVER_URL ?? "https://acsgadgets.com";
 
   try {
     const query = req.nextUrl.searchParams;
