@@ -42,6 +42,7 @@ export interface ProductParams {
   }[];
   price: string;
   oldPrice?: string;
+  buyingPrice?: string;
   stock: string;
   category: string;
   subCategory?: string[];

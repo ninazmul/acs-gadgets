@@ -32,6 +32,7 @@ const productFormSchema = z.object({
   ),
   price: z.string().min(1, "Price is required"),
   oldPrice: z.string().optional(),
+  buyingPrice: z.string().optional(),
   stock: z.string().min(1, "Stock is required"),
   category: z.string().min(1, "Category is required"),
   subCategory: z.array(z.string()).optional(),
@@ -77,6 +78,7 @@ const ProductForm = ({
           images: [],
           price: "",
           oldPrice: "",
+          buyingPrice: "",
           stock: "",
           category: "",
           subCategory: [],
@@ -247,6 +249,21 @@ const ProductForm = ({
               <FormLabel>Old Price</FormLabel>
               <FormControl>
                 <Input placeholder="Enter old price (optional)" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+         {/* Buying Price */}
+        <FormField
+          control={form.control}
+          name="buyingPrice"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Buying Price</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter buying price (optional)" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

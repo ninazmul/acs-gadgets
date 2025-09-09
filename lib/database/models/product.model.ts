@@ -9,6 +9,7 @@ export interface IProduct extends Document {
   }[];
   price: string;
   oldPrice?: string;
+  buyingPrice?: string;
   stock: string;
   category: string;
   subCategory?: string[]; 
@@ -36,6 +37,7 @@ const ProductSchema = new Schema<IProduct>(
     ],
     price: { type: String, required: true },
     oldPrice: { type: String },
+    buyingPrice: { type: String },
     stock: { type: String, required: true },
     category: { type: String, required: true },
     subCategory: [{ type: String }],

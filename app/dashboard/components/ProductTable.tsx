@@ -127,7 +127,6 @@ const ProductTable = ({
                   (sortOrder === "asc" ? <SortAsc /> : <SortDesc />)}
               </div>
             </TableHead>
-            <TableHead>Suggested Price</TableHead>
             <TableHead>Category</TableHead>
             <TableHead>Brand</TableHead>
             <TableHead>SKU</TableHead>
@@ -146,7 +145,6 @@ const ProductTable = ({
               </TableCell>
               <TableCell>৳{product.price}</TableCell>
               <TableCell>{product.stock}</TableCell>
-              <TableCell>৳{product.suggestedPrice}</TableCell>
               <TableCell>{product.category}</TableCell>
               <TableCell>{product.brand || "-"}</TableCell>
               <TableCell>{product.sku || "-"}</TableCell>

@@ -63,7 +63,7 @@ type Order = {
     title: string;
     images: string;
     price: number;
-    sellingPrice?: number;
+    buyingPrice?: number;
     quantity: number;
     category: string;
     brand?: string;
@@ -311,7 +311,8 @@ const OrderTable = ({
               <TableCell>
                 {(() => {
                   const cost = order.products.reduce(
-                    (acc, product) => acc + product.price * product.quantity,
+                    (acc, product) =>
+                      acc + (product.buyingPrice ?? 0) * product.quantity,
                     0
                   );
                   const total = parseFloat(order.totalAmount) || 0;
