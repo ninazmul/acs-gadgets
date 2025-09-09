@@ -35,7 +35,7 @@ export default async function AdminLayout({
       <AdminSidebar role={role || ""} />
       <Toaster />
       <main className="flex-1 h-screen mx-auto overflow-y-auto">
-        <div className="flex justify-between items-center p-4 w-full border-b text-white bg-primary-900">
+        <div className="flex justify-between items-center p-4 w-full border-b text-white bg-[#3e0078]">
           <SidebarTrigger />
           <SignedIn>
             <UserButton afterSwitchSessionUrl="/" />

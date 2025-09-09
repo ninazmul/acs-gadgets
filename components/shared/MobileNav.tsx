@@ -53,7 +53,7 @@ const MobileNav = () => {
               </span>
             </h1>
           </a>
-          <Separator className="border border-primary-500" />
+          <Separator className="border border-[#3e0078]" />
           <NavItems onItemSelected={handleClose} />
         </SheetContent>
       </Sheet>

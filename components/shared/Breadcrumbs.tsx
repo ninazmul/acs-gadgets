@@ -18,14 +18,14 @@ export default function Breadcrumbs() {
       .replace(/\b\w/g, (char) => char.toUpperCase());
 
   return (
-    <nav className="text-sm text-primary-900 px-1 mb-4 no-print" aria-label="Breadcrumb">
+    <nav className="text-sm text-[#3e0078] px-1 mb-4 no-print" aria-label="Breadcrumb">
       <div className="w-full overflow-hidden">
         <ol className="flex items-center space-x-1 text-ellipsis whitespace-nowrap overflow-hidden min-w-0">
           {/* Home link */}
           <li className="flex items-center shrink-0">
             <a
               href={"/"}
-              className="flex items-center text-primary-900 hover:underline transition-colors"
+              className="flex items-center text-[#3e0078] hover:underline transition-colors"
             >
               <Home size={16} className="mr-1" />
               <span className="hidden sm:inline">Home</span>
@@ -42,15 +42,15 @@ export default function Breadcrumbs() {
                 key={href}
                 className="flex items-center shrink-0 text-ellipsis overflow-hidden"
               >
-                <ChevronRight size={16} className="mx-1 text-primary-900" />
+                <ChevronRight size={16} className="mx-1 text-[#3e0078]" />
                 {isLast ? (
-                  <span className="text-primary-900 truncate">
+                  <span className="text-[#3e0078] truncate">
                     {createBreadcrumbLabel(segment)}
                   </span>
                 ) : (
                   <a
                     href={href}
-                    className="text-primary-900 hover:underline transition-colors truncate"
+                    className="text-[#3e0078] hover:underline transition-colors truncate"
                   >
                     {createBreadcrumbLabel(segment)}
                   </a>
