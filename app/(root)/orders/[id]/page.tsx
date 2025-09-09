@@ -8,8 +8,6 @@ import {
   StickyNote,
   CreditCard,
 } from "lucide-react";
-import { auth } from "@clerk/nextjs/server";
-import { getUserEmailById } from "@/lib/actions/user.actions";
 import { getSetting } from "@/lib/actions/setting.actions";
 import InvoiceDownloader from "@/app/dashboard/components/InvoiceDownloader";
 
@@ -36,10 +34,6 @@ type Product = {
 const OrderDetails = async ({ params }: PageProps) => {
   const { id } = await params;
   const order = await getOrderById(id);
-
-  const { sessionClaims } = await auth();
-  const userId = sessionClaims?.userId as string;
-  const email = await getUserEmailById(userId);
 
   const setting = await getSetting();
 
@@ -70,23 +64,30 @@ const OrderDetails = async ({ params }: PageProps) => {
     <section className="px-4 py-10 max-w-5xl mx-auto space-y-8">
       <div className="border rounded-xl p-6 shadow space-y-6 bg-white">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 border-b pb-6 mb-6">
-          {/* Seller Brand */}
-          <div className="flex items-center gap-4">
+        <div className="flex justify-between items-center border-b pb-6">
+          {/* Setting Info */}
+          <div className="flex items-center space-x-4">
             <div>
-              <p className="text-sm text-muted-foreground">{email}</p>
+              <h2 className="text-2xl font-bold">{setting?.name || "Shop"}</h2>
+              <p className="text-sm text-gray-600">{setting?.email}</p>
+              <p className="text-sm text-gray-600">{setting?.phoneNumber}</p>
             </div>
           </div>
+
           {/* Invoice Info */}
-          <div className="text-center md:text-right space-y-1">
-            <h2 className="text-xl font-semibold">INVOICE</h2>
-            <p className="text-sm">
-              <span className="font-medium">Invoice ID:</span> #
+          <div className="text-right">
+            <h1 className="text-4xl font-extrabold text-orange-600">INVOICE</h1>
+            <p className="mt-2 text-sm">
+              <span className="font-semibold">Invoice ID:</span> #
               {order.orderId || order._id}
             </p>
             <p className="text-sm">
-              <span className="font-medium">Order Date:</span>{" "}
+              <span className="font-semibold">Date:</span>{" "}
               {formatDate(order.createdAt)}
+            </p>
+            <p className="text-sm">
+              <span className="font-semibold">Payment:</span>{" "}
+              {order.paymentMethod === "cod" ? "Cash on Delivery" : "bKash"}
             </p>
           </div>
         </div>
