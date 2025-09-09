@@ -1,13 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Clipboard,
-  FileText,
-  Calendar,
-  Users,
-  HelpCircle,
-} from "lucide-react";
+import { Clipboard, FileText, Calendar, Users, HelpCircle } from "lucide-react";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -34,6 +28,7 @@ import DashboardStats from "./components/DashboardStats";
 import { getUserByClerkId, getUserEmailById } from "@/lib/actions/user.actions";
 import { isAdmin } from "@/lib/actions/admin.actions";
 import { useUser } from "@clerk/nextjs";
+import { IProduct } from "@/lib/database/models/product.model";
 
 // Register Chart.js components
 ChartJS.register(
@@ -49,7 +44,7 @@ ChartJS.register(
 const Dashboard = () => {
   const { user } = useUser();
   const userId = user?.id || "";
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState<IProduct[]>([]);
   const [orders, setOrders] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [banners, setBanners] = useState([]);
@@ -73,19 +68,15 @@ const Dashboard = () => {
           ? await getAllCustomers()
           : await getCustomersByEmail(email);
 
-        const [
-          productsData,
-          bannersData,
-          categoriesData,
-          brandsData,
-        ] = await Promise.all([
-          getAllProducts(),
-          getAllBanners(),
-          getAllCategories(),
-          getAllBrands(),
-        ]);
+        const [productsData, bannersData, categoriesData, brandsData] =
+          await Promise.all([
+            getAllProducts(),
+            getAllBanners(),
+            getAllCategories(),
+            getAllBrands(),
+          ]);
 
-        setProducts(productsData);
+        setProducts(productsData || []);
         setOrders(ordersData);
         setCustomers(customersData);
         setBanners(bannersData);
@@ -150,7 +141,6 @@ const Dashboard = () => {
         <h2 className="text-2xl font-bold mb-4">Financial Overview</h2>
         <DashboardStats orders={orders} />
       </div>
-
     </div>
   );
 };

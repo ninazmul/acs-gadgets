@@ -5,7 +5,7 @@ import Loader from "@/components/shared/Loader";
 
 export default async function ProductPage() {
 
-  const products = await getAllProducts();
+  const products = (await getAllProducts()) || [];
 
   return (
     <Suspense fallback={<Loader />}>

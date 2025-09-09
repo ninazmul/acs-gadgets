@@ -16,7 +16,7 @@ const Page = async () => {
     redirect("/dashboard");
   }
 
-  const products = await getAllProducts();
+  const products = (await getAllProducts()) || [];
 
   return (
     <>

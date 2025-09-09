@@ -3,7 +3,7 @@
 import { ProductParams } from "@/types";
 import { handleError } from "../utils";
 import { connectToDatabase } from "../database";
-import Product from "../database/models/product.model";
+import Product, { IProduct } from "../database/models/product.model";
 
 export const createProduct = async (params: ProductParams) => {
   try {
@@ -22,23 +22,26 @@ export const getAllProducts = async () => {
     const localProducts = await Product.find();
     const parsedLocalProducts = JSON.parse(JSON.stringify(localProducts));
 
-    const response = await fetch("https://dropandshipping.com/api/products", {
-      headers: {
-        "Authorization": `Bearer ${process.env.PRODUCTS_API_KEY}`
+    let externalProducts: IProduct[] = [];
+    try {
+      const response = await fetch("https://dropandshipping.com/api/products", {
+        headers: {
+          Authorization: `Bearer ${process.env.PRODUCTS_API_KEY}`,
+        },
+      });
+      if (response.ok) {
+        externalProducts = await response.json();
+      } else {
+        console.warn("Failed to fetch external products:", response.status);
       }
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch external products");
+    } catch (err) {
+      console.warn("Error fetching external products:", err);
     }
 
-    const externalProducts = await response.json();
-
-    const allProducts = [...parsedLocalProducts, ...externalProducts];
-
-    return allProducts;
+    return [...parsedLocalProducts, ...externalProducts];
   } catch (error) {
     handleError(error);
+    return [];
   }
 };
 

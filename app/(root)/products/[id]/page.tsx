@@ -41,7 +41,7 @@ const ProductDetails = async ({ params }: PageProps) => {
 
   const { id } = await params;
   const product = await getProductById(id);
-  const allProducts = await getAllProducts();
+  const allProducts = (await getAllProducts()) || [];
 
   const relatedProducts = allProducts
     .filter((p: IProduct) => {
