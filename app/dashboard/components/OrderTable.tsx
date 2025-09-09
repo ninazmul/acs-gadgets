@@ -317,17 +317,22 @@ const OrderTable = ({
                         product.quantity,
                     0
                   );
+
                   const total = parseFloat(order.totalAmount) || 0;
+
                   let deliveryCharge = 0;
                   if (order.customer.district === "Dhaka") {
                     deliveryCharge = 60;
                   } else {
-                    deliveryCharge = 110;
+                    deliveryCharge = 120;
                   }
-                  const profit = total - cost - deliveryCharge;
+
+                  const profit = total - deliveryCharge - cost;
+
                   return `৳${profit.toFixed(2)}`;
                 })()}
               </TableCell>
+
               <TableCell>
                 {isAdmin ? (
                   <div
