@@ -137,6 +137,7 @@ export default function CheckoutPage() {
         subtotal,
         total,
         paymentMethod,
+        userEmail: user?.emailAddresses?.[0]?.emailAddress || "",
         reference,
       };
 
