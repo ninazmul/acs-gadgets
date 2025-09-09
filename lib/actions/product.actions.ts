@@ -36,11 +36,16 @@ export const getAllProducts = async () => {
 
       if (Array.isArray(response.data)) {
         externalProducts = response.data;
+      } else if (Array.isArray(response.data.products)) {
+        externalProducts = response.data.products;
       } else {
-        console.warn("External products response is not an array");
+        console.warn(
+          "External products response is not an array:",
+          response.data
+        );
       }
-    } catch (err) {
-      console.warn("Error fetching external products:", err);
+    } catch (error) {
+      console.warn("Error fetching external products:", error);
     }
 
     return [...parsedLocalProducts, ...externalProducts];
