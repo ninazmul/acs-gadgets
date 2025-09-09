@@ -12,8 +12,8 @@ export default async function PoliciesPage() {
   return (
     <section className="py-12 bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="wrapper max-w-7xl mx-auto px-6">
-        <h1 className="text-4xl font-extrabold mb-12 text-gray-900 dark:text-white text-center">
-          Policies
+        <h1 className="text-4xl font-extrabold mb-8 text-gray-900 dark:text-white">
+          {settings.name}&apos;s <span className="text-primary-600">Policies</span>
         </h1>
 
         <div className="grid grid-cols-1 gap-12">
