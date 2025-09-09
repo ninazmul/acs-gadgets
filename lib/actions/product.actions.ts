@@ -3,8 +3,7 @@
 import { ProductParams } from "@/types";
 import { handleError } from "../utils";
 import { connectToDatabase } from "../database";
-import Product, { IProduct } from "../database/models/product.model";
-import axios from "axios";
+import Product from "../database/models/product.model";
 
 export const createProduct = async (params: ProductParams) => {
   try {
@@ -20,35 +19,11 @@ export const getAllProducts = async () => {
   try {
     await connectToDatabase();
 
-    const localProducts = await Product.find();
-    const parsedLocalProducts = JSON.parse(JSON.stringify(localProducts));
+    const products = await Product.find();
 
-    let externalProducts: IProduct[] = [];
-
-    try {
-      const response = await axios.get(
-        "https://dropandshipping.com/api/products",
-        {
-          headers: {
-            "x-api-key": process.env.PRODUCTS_API_KEY,
-          },
-        }
-      );
-
-      if (!response.data || !Array.isArray(response.data.products)) {
-        console.warn("External API returned unexpected data:", response.data);
-      } else {
-        externalProducts = response.data.products;
-        console.log("External products fetched:", externalProducts.length);
-      }
-    } catch (err) {
-      console.error("Failed to fetch external products:", err);
-    }
-
-    return [...parsedLocalProducts, ...externalProducts];
+    return JSON.parse(JSON.stringify(products));
   } catch (error) {
     handleError(error);
-    return [];
   }
 };
 

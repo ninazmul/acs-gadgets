@@ -69,7 +69,7 @@ const Footer = () => {
               priority
             />
             {settings?.tagline && (
-              <p className="mb-8 text-xl italic text-primary-600 dark:text-orange-400 border-l-4 border-primary pl-4">
+              <p className="mb-8 text-xl italic text-white dark:text-orange-400 border-l-4 border-primary pl-4">
                 {settings.tagline}
               </p>
             )}
