@@ -10,7 +10,6 @@ import {
 } from "@/lib/actions/pendingPayment.actions";
 
 type Customer = {
-  _id: string;
   name: string;
   email: string;
   number: string;
