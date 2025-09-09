@@ -11,7 +11,7 @@ export default async function PoliciesPage() {
 
   return (
     <section className="py-12 bg-gray-50 dark:bg-gray-900 min-h-screen">
-      <div className="wrapper max-w-5xl mx-auto px-6">
+      <div className="wrapper max-w-7xl mx-auto px-6">
         <h1 className="text-4xl font-extrabold mb-12 text-gray-900 dark:text-white text-center">
           Policies
         </h1>
@@ -21,7 +21,7 @@ export default async function PoliciesPage() {
           {settings.returnPolicy && (
             <div
               id="return-policy"
-              className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700"
+              className="bg-white dark:bg-gray-800 p-4 lg:p-8 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700"
             >
               <h2 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-white">
                 Return Policy
@@ -52,7 +52,7 @@ export default async function PoliciesPage() {
           {settings.termsOfService && (
             <div
               id="terms-of-service"
-              className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700"
+              className="bg-white dark:bg-gray-800 p-4 lg:p-8 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700"
             >
               <h2 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-white">
                 Terms of Service
@@ -83,7 +83,7 @@ export default async function PoliciesPage() {
           {settings.privacyPolicy && (
             <div
               id="privacy-policy"
-              className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700"
+              className="bg-white dark:bg-gray-800 p-4 lg:p-8 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700"
             >
               <h2 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-white">
                 Privacy Policy

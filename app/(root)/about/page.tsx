@@ -49,7 +49,7 @@ export default async function AboutPage() {
 
   return (
     <section className="py-12 bg-gray-50 dark:bg-gray-900 min-h-screen">
-      <div className="wrapper max-w-5xl mx-auto px-6">
+      <div className="wrapper max-w-7xl mx-auto px-6">
         <h1 className="text-4xl font-extrabold mb-8 text-gray-900 dark:text-white">
           About <span className="text-primary-600">{settings.name}</span>
         </h1>
