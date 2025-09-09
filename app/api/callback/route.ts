@@ -185,7 +185,7 @@ export async function GET(req: NextRequest) {
 
     // 9️⃣ Redirect to order success page
     return NextResponse.redirect(
-      `${myUrl}/dashboard/orders/${createdOrder._id}`,
+      `${myUrl}/orders/${createdOrder._id}`,
       303
     );
   } catch (err) {

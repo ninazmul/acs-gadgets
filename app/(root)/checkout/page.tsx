@@ -71,7 +71,7 @@ export default function CheckoutPage() {
   );
 
   const ADVANCE_AMOUNT = useMemo(
-    () => (paymentMethod === "bkash" ? (subtotal ?? 0) + (shipping ?? 0) : 1),
+    () => (paymentMethod === "bkash" ? (subtotal ?? 0) + (shipping ?? 0) : 200),
     [paymentMethod, subtotal, shipping]
   );
 

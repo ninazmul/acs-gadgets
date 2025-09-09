@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
     const myUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? "https://acsgadgets.com";
 
     const paymentDetails = {
-      amount: paymentMethod === "bkash" ? total : 1, // full or advance
+      amount: paymentMethod === "bkash" ? total : 200, // full or advance
       callbackURL: `${myUrl}/api/callback?reference=${reference}`,
       orderID: reference,
       reference,
