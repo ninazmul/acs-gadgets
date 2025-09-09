@@ -9,7 +9,6 @@ import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
 import axios from "axios";
 import Loader from "@/components/shared/Loader";
-import { getUserByClerkId, getUserEmailById } from "@/lib/actions/user.actions";
 
 type CartItem = {
   _id: string;
@@ -41,7 +40,6 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { user } = useUser();
 
-  const [Email, setEmail] = useState<string>("");
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartLoading, setIsCartLoading] = useState(true);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
@@ -50,23 +48,9 @@ export default function CheckoutPage() {
   const [shipping, setShipping] = useState<number>(110);
   const [paymentMethod, setPaymentMethod] = useState<"bkash" | "cod">("cod");
 
-  useEffect(() => {
-    if (!user?.id) return;
-    (async () => {
-      try {
-        const userID = await getUserByClerkId(user.id);
-        const email = await getUserEmailById(userID);
-        setEmail(email);
-      } catch (err) {
-        console.error(err);
-        toast.error("Failed to fetch user email.");
-      }
-    })();
-  }, [user?.id]);
-
   const [customer, setCustomer] = useState<Customer>({
     name: "",
-    email: Email || "",
+    email: user?.emailAddresses?.[0]?.emailAddress || "",
     number: "",
     address: "",
     areaOfDelivery: "",
@@ -95,7 +79,7 @@ export default function CheckoutPage() {
       if (!user?.id) return;
       try {
         setIsCartLoading(true);
-        const items = await getCartsByEmail(Email || "");
+        const items = await getCartsByEmail(user.emailAddresses?.[0]?.emailAddress || "");
         setCartItems(items || []);
       } catch {
         toast.error("Failed to load cart items.");
@@ -106,7 +90,7 @@ export default function CheckoutPage() {
     };
 
     fetchCartData();
-  }, [Email, user?.id]);
+  }, [user?.id, user?.emailAddresses]);
 
   if (!isLoading && !isCartLoading && cartItems.length === 0) {
     router.push("/products");
@@ -127,12 +111,7 @@ export default function CheckoutPage() {
 
   const initiateBkashPayment = async () => {
     // validate customer
-    if (
-      !customer.name ||
-      !customer.email ||
-      !customer.number ||
-      !customer.address
-    ) {
+    if (!customer.name || !customer.email || !customer.number || !customer.address) {
       toast.error("Please fill in all customer details.");
       return;
     }
@@ -249,12 +228,8 @@ export default function CheckoutPage() {
                     className="rounded border h-20 w-14 object-cover"
                   />
                   <div className="flex-1">
-                    <p className="text-sm font-medium line-clamp-1">
-                      {item.title}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      x {item.quantity}
-                    </p>
+                    <p className="text-sm font-medium line-clamp-1">{item.title}</p>
+                    <p className="text-xs text-muted-foreground">x {item.quantity}</p>
                     {Array.isArray(item.variations) &&
                       item.variations.length > 0 && (
                         <div className="text-xs text-gray-500 space-y-1 mt-1">
