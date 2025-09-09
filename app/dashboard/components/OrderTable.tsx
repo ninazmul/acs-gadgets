@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   deleteOrder,
   updateOrderDetails,
@@ -28,6 +28,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
+import { getProductById } from "@/lib/actions/product.actions";
 
 const statusOptions = [
   "Pending",
@@ -63,7 +64,6 @@ type Order = {
     title: string;
     images: string;
     price: number;
-    buyingPrice?: number;
     quantity: number;
     category: string;
     brand?: string;
@@ -117,6 +117,9 @@ const OrderTable = ({
   const [selectedRefundOrderId, setSelectedRefundOrderId] = useState<
     string | null
   >(null);
+  const [productBuyingPrices, setProductBuyingPrices] = useState<
+    Record<string, number>
+  >({});
 
   // Sheet open and mode: payment | courier | refund
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -148,6 +151,41 @@ const OrderTable = ({
     refundStatus: "None",
     returnReason: "",
   });
+
+  useEffect(() => {
+    const fetchBuyingPrices = async () => {
+      const prices: Record<string, number> = {};
+
+      await Promise.all(
+        orders.map(async (order) => {
+          await Promise.all(
+            order.products.map(async (product) => {
+              if (!prices[product.productId]) {
+                try {
+                  const dbProduct = await getProductById(product.productId);
+                  if (dbProduct?.buyingPrice) {
+                    prices[product.productId] = parseFloat(
+                      dbProduct.buyingPrice
+                    );
+                  }
+                } catch (err) {
+                  console.error(
+                    "Error fetching product:",
+                    product.productId,
+                    err
+                  );
+                }
+              }
+            })
+          );
+        })
+      );
+
+      setProductBuyingPrices(prices);
+    };
+
+    fetchBuyingPrices();
+  }, [orders]);
 
   const filteredOrders = useMemo(() => {
     return orders.filter(
@@ -310,23 +348,22 @@ const OrderTable = ({
               <TableCell>৳{order.totalAmount}</TableCell>
               <TableCell>
                 {(() => {
-                  const cost = order.products.reduce(
-                    (acc, product) =>
-                      acc +
-                      (product.buyingPrice ? product.buyingPrice : 0) *
-                        product.quantity,
-                    0
-                  );
+                  // Calculate total cost based on fetched buying prices
+                  const cost = order.products.reduce((acc, product) => {
+                    const buyingPrice =
+                      productBuyingPrices[product.productId] ?? 0;
+                    return acc + buyingPrice * product.quantity;
+                  }, 0);
 
+                  // Total amount of the order
                   const total = parseFloat(order.totalAmount) || 0;
 
+                  // Delivery charge based on district
                   let deliveryCharge = 0;
-                  if (order.customer.district === "Dhaka") {
-                    deliveryCharge = 60;
-                  } else {
-                    deliveryCharge = 120;
-                  }
+                  if (order.customer.district === "Dhaka") deliveryCharge = 60;
+                  else deliveryCharge = 120;
 
+                  // Profit = total amount - delivery charge - cost
                   const profit = total - deliveryCharge - cost;
 
                   return `৳${profit.toFixed(2)}`;
