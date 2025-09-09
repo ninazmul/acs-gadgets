@@ -202,7 +202,7 @@ export default function Header() {
         </nav>
         <MobileNav />
 
-        {!Email ? (
+        {Email ? (
           <div className="flex items-center gap-4">
             <a href={"/orders"}>
               <Button size={"sm"} variant={"ghost"} className="text-white hover:text-primary-500 flex items-center gap-1 rounded-full">
