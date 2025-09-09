@@ -312,7 +312,9 @@ const OrderTable = ({
                 {(() => {
                   const cost = order.products.reduce(
                     (acc, product) =>
-                      acc + (product.buyingPrice ?? 0) * product.quantity,
+                      acc +
+                      (product.buyingPrice ? product.buyingPrice : 0) *
+                        product.quantity,
                     0
                   );
                   const total = parseFloat(order.totalAmount) || 0;
