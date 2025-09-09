@@ -203,7 +203,6 @@ export type CartItem = {
 };
 
 export type Customer = {
-  _id: string;
   name: string;
   email: string;
   number: string;
