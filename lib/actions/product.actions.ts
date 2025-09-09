@@ -4,6 +4,7 @@ import { ProductParams } from "@/types";
 import { handleError } from "../utils";
 import { connectToDatabase } from "../database";
 import Product, { IProduct } from "../database/models/product.model";
+import axios from "axios";
 
 export const createProduct = async (params: ProductParams) => {
   try {
@@ -24,15 +25,19 @@ export const getAllProducts = async () => {
 
     let externalProducts: IProduct[] = [];
     try {
-      const response = await fetch("https://dropandshipping.com/api/products", {
-        headers: {
-          Authorization: `Bearer ${process.env.PRODUCTS_API_KEY}`,
-        },
-      });
-      if (response.ok) {
-        externalProducts = await response.json();
+      const response = await axios.get(
+        "https://dropandshipping.com/api/products",
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.PRODUCTS_API_KEY}`,
+          },
+        }
+      );
+
+      if (Array.isArray(response.data)) {
+        externalProducts = response.data;
       } else {
-        console.warn("Failed to fetch external products:", response.status);
+        console.warn("External products response is not an array");
       }
     } catch (err) {
       console.warn("Error fetching external products:", err);
