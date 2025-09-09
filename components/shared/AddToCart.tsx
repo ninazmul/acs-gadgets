@@ -185,7 +185,7 @@ const AddToCart = ({ product, email }: AddToCartProps) => {
           loading ||
           (!!product.variations && product.variations.length > 0 && !selectedVariation)
         }
-        className="w-full text-white"
+        className="w-full"
       >
         {loading ? "Adding..." : "Add to Cart"}
       </Button>
