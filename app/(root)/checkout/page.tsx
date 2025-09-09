@@ -127,7 +127,7 @@ export default function CheckoutPage() {
 
     try {
       setIsPlacingOrder(true);
-      const reference = "user_" + Date.now();
+      const reference = "acs_gadgets" + Date.now();
 
       const paymentPayload = {
         customer,
