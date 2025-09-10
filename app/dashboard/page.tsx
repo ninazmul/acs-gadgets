@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Clipboard, FileText, Calendar, Users, HelpCircle } from "lucide-react";
+import { Clipboard, Calendar, Users, HelpCircle } from "lucide-react";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -14,10 +14,6 @@ import {
 } from "chart.js";
 import { getAllProducts } from "@/lib/actions/product.actions";
 import { getAllOrders, getOrdersByEmail } from "@/lib/actions/order.actions";
-import {
-  getAllCustomers,
-  getCustomersByEmail,
-} from "@/lib/actions/customer.actions";
 import { getAllBanners } from "@/lib/actions/banner.actions";
 import { getAllCategories } from "@/lib/actions/category.actions";
 import { getAllBrands } from "@/lib/actions/brand.actions";
@@ -46,7 +42,6 @@ const Dashboard = () => {
   const userId = user?.id || "";
   const [products, setProducts] = useState<IProduct[]>([]);
   const [orders, setOrders] = useState([]);
-  const [customers, setCustomers] = useState([]);
   const [banners, setBanners] = useState([]);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
@@ -64,10 +59,6 @@ const Dashboard = () => {
           ? await getAllOrders()
           : await getOrdersByEmail(email);
 
-        const customersData = adminStatus
-          ? await getAllCustomers()
-          : await getCustomersByEmail(email);
-
         const [productsData, bannersData, categoriesData, brandsData] =
           await Promise.all([
             getAllProducts(),
@@ -78,7 +69,6 @@ const Dashboard = () => {
 
         setProducts(productsData || []);
         setOrders(ordersData);
-        setCustomers(customersData);
         setBanners(bannersData);
         setCategories(categoriesData);
         setBrands(brandsData);
@@ -107,11 +97,6 @@ const Dashboard = () => {
             icon={<Calendar className="text-3xl text-purple-500" />}
             title="Total Orders"
             value={`${orders.length}`}
-          />
-          <DashboardCard
-            icon={<FileText className="text-3xl text-green-500" />}
-            title="Total Customers"
-            value={customers.length}
           />
           {adminStatus && (
             <DashboardCard

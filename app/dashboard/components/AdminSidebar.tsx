@@ -21,7 +21,6 @@ import {
   Shield,
   GalleryThumbnails,
   Tag,
-  UserPlus,
   Settings,
 } from "lucide-react";
 import Image from "next/image";
@@ -57,12 +56,6 @@ const sidebarItems = [
     title: "Brands",
     url: "/dashboard/brands",
     icon: Tag,
-    roles: ["admin"],
-  },
-  {
-    title: "Customers",
-    url: "/dashboard/customers",
-    icon: UserPlus,
     roles: ["admin"],
   },
   {

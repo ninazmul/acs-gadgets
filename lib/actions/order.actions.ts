@@ -4,9 +4,6 @@ import { OrderParams } from "@/types";
 import { generateOrderId, handleError } from "../utils";
 import { connectToDatabase } from "../database";
 import Order from "../database/models/order.model";
-import { updateCustomer } from "./customer.actions";
-import Customer from "../database/models/customer.model";
-
 // ✅ Create a new order
 export const createOrder = async (params: OrderParams) => {
   try {
@@ -102,42 +99,6 @@ export const updateOrderStatus = async (orderId: string, newStatus: string) => {
 
     order.orderStatus = newStatus;
     await order.save();
-
-    const customer = await Customer.findOne({ email: order.email });
-    if (!customer) {
-      console.log(`Customer with email ${order.email} not found`);
-      return { success: false, message: "Customer not found" };
-    }
-
-    let successfulOrder = parseInt(customer.successfulOrder || "0");
-    let canceledOrder = parseInt(customer.canceledOrder || "0");
-
-    // Adjust successful order count
-    if (prevStatus === "Delivered" && newStatus !== "Delivered") {
-      successfulOrder = Math.max(0, successfulOrder - 1);
-      console.log("Decrement successfulOrder");
-    } else if (prevStatus !== "Delivered" && newStatus === "Delivered") {
-      successfulOrder += 1;
-      console.log("Increment successfulOrder");
-    }
-
-    // Adjust canceled order count
-    if (prevStatus === "Cancelled" && newStatus !== "Cancelled") {
-      canceledOrder = Math.max(0, canceledOrder - 1);
-      console.log("Decrement canceledOrder");
-    } else if (prevStatus !== "Cancelled" && newStatus === "Cancelled") {
-      canceledOrder += 1;
-      console.log("Increment canceledOrder");
-    }
-
-    await updateCustomer(customer._id.toString(), {
-      successfulOrder: successfulOrder.toString(),
-      canceledOrder: canceledOrder.toString(),
-    });
-
-    console.log(
-      `Updated customer stats: successfulOrder=${successfulOrder}, canceledOrder=${canceledOrder}`
-    );
 
     return {
       success: true,
