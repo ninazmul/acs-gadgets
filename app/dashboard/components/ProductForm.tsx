@@ -23,6 +23,7 @@ import { RichTextEditor } from "@/components/shared/RichTextEditor";
 import { ICategory } from "@/lib/database/models/category.model";
 import Select from "react-select";
 import { IBrand } from "@/lib/database/models/brand.model";
+import FeatureEditor from "@/components/shared/FeatureEditor";
 
 const productFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -255,7 +256,7 @@ const ProductForm = ({
           )}
         />
 
-         {/* Buying Price */}
+        {/* Buying Price */}
         <FormField
           control={form.control}
           name="buyingPrice"
@@ -413,57 +414,7 @@ const ProductForm = ({
             <FormItem>
               <FormLabel>Features</FormLabel>
               <FormControl>
-                <div className="flex flex-col gap-2">
-                  {/* Input Field for Typing a Feature */}
-                  <Input
-                    placeholder="Type a feature and press Enter"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        const rawValue = e.currentTarget.value.trim();
-
-                        if (rawValue) {
-                          // Split by "." and clean up spaces
-                          const newFeatures = rawValue
-                            .split(".")
-                            .map((f) => f.trim())
-                            .filter((f) => f.length > 0);
-
-                          form.setValue("features", [
-                            ...(field.value || []),
-                            ...newFeatures,
-                          ]);
-
-                          e.currentTarget.value = "";
-                        }
-                      }
-                    }}
-                  />
-
-                  {/* Render Feature Tags */}
-                  <div className="flex flex-wrap gap-2">
-                    {(field.value || []).map((feature, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center gap-1 px-2 py-1 bg-muted text-sm rounded-full border"
-                      >
-                        <span>{feature}</span>
-                        <button
-                          type="button"
-                          className="ml-1 text-red-500 hover:text-red-700"
-                          onClick={() => {
-                            const updated = field.value?.filter(
-                              (_, i) => i !== index
-                            );
-                            form.setValue("features", updated);
-                          }}
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <FeatureEditor value={field.value} onChange={field.onChange} />
               </FormControl>
               <FormMessage />
             </FormItem>
