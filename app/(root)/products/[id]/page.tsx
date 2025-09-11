@@ -55,7 +55,7 @@ const ProductDetails = async ({ params }: PageProps) => {
 
       return categoryMatch || brandMatch || subCategoryMatch;
     })
-    .slice(0, 12);
+    .slice(0, 10);
 
   if (!product) {
     return (
