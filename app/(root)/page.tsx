@@ -1,3 +1,5 @@
+export const revalidate = 60;
+
 import BannerCarousel from "@/components/shared/BannerCarousel";
 import { getAllBanners } from "@/lib/actions/banner.actions";
 import { getProductsBySubCategory } from "@/lib/actions/product.actions";
