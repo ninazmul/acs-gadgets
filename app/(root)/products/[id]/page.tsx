@@ -194,10 +194,7 @@ const ProductDetails = async ({ params }: PageProps) => {
 
               {/* Add to Cart Button with Variation Support */}
               {product.stock !== "0" && (
-                <AddToCart
-                  product={product}
-                  email={email}
-                />
+                <AddToCart product={product} email={email} />
               )}
             </CardContent>
           </Card>
