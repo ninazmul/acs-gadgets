@@ -32,7 +32,8 @@ export async function generateMetadata(): Promise<Metadata> {
       ? `${settings.name} | ${settings.tagline || ""}`
       : "ACS Gadgets",
     description:
-      stripHtml(settings?.description) || "ACS Gadgets - Online Gadgets Store",
+      stripHtml(settings?.description) ||
+      "ACS Gadgets is your one-stop destination for the latest and most innovative tech products. From everyday essentials to cutting-edge devices, we provide high-quality gadgets designed to make life smarter, easier, and more enjoyable. Our collection features everything from smart electronics and accessories to lifestyle-enhancing tools—all carefully curated for reliability, performance, and style. At ACS Gadgets, we believe technology should empower you, whether it’s for work, play, or daily convenience.",
     keywords: [
       "Online Gadgets Store",
       "Electronics",
@@ -48,11 +49,11 @@ export async function generateMetadata(): Promise<Metadata> {
     ],
     icons: {
       icon: settings?.favicon,
-      shortcut: "/assets/images/favicon.ico",
-      apple: "/assets/images/apple-touch-icon.png",
+      shortcut: "/assets/images/logo.png",
+      apple: "/assets/images/logo.png",
     },
     alternates: {
-      canonical: "https://www.dropandshipping.com/",
+      canonical: "https://acsgadgets.com/",
     },
     openGraph: {
       title: settings
@@ -61,11 +62,11 @@ export async function generateMetadata(): Promise<Metadata> {
       description:
         settings?.description ||
         "Find and shop trending gadgets, smart devices, and accessories at ACS Gadgets — your go-to online gadgets store.",
-      url: "https://www.dropandshipping.com/",
+      url: "https://acsgadgets.com/",
       siteName: settings?.name || "ACS Gadgets",
       images: [
         {
-          url: "https://www.dropandshipping.com/assets/images/logo.png",
+          url: "https://acsgadgets.com/assets/images/logo.png",
           width: 1200,
           height: 630,
           alt: settings?.name || "ACS Gadgets",
