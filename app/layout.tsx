@@ -20,6 +20,10 @@ const dmSerif = DM_Serif_Display({
   variable: "--font-dm-serif",
 });
 
+function stripHtml(html?: string) {
+  return html?.replace(/<[^>]+>/g, "") || "";
+}
+
 export async function generateMetadata(): Promise<Metadata> {
   const settings: ISetting | null = await getSetting();
 
@@ -28,11 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
       ? `${settings.name} | ${settings.tagline || ""}`
       : "ACS Gadgets",
     description:
-      settings?.description ||
-      "ACS Gadgets is your one-stop destination for the latest and most innovative tech products. From everyday essentials to cutting-edge devices, we provide high-quality gadgets designed to make life smarter, easier, and more enjoyable. Our collection features everything from smart electronics and accessories to lifestyle-enhancing tools—all carefully curated for reliability, performance, and style. At ACS Gadgets, we believe technology should empower you, whether it’s for work, play, or daily convenience.".replace(
-        /<[^>]+>/g,
-        ""
-      ),
+      stripHtml(settings?.description) || "ACS Gadgets - Online Gadgets Store",
     keywords: [
       "Online Gadgets Store",
       "Electronics",
