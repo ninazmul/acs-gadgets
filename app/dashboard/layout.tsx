@@ -1,5 +1,3 @@
-export const revalidate = 60;
-
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { getAdminRole, isAdmin } from "@/lib/actions/admin.actions";
 import { getUserEmailById } from "@/lib/actions/user.actions";

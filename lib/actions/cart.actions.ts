@@ -19,7 +19,7 @@ export const getAllCarts = async () => {
   try {
     await connectToDatabase();
 
-    const carts = await Cart.find();
+    const carts = await Cart.find().lean();
 
     return JSON.parse(JSON.stringify(carts));
   } catch (error) {

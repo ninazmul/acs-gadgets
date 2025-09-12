@@ -19,7 +19,7 @@ export const getAllBanners = async () => {
   try {
     await connectToDatabase();
 
-    const banners = await Banner.find();
+    const banners = await Banner.find().lean();
 
     return JSON.parse(JSON.stringify(banners));
   } catch (error) {

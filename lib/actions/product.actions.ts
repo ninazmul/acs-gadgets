@@ -19,7 +19,7 @@ export const getAllProducts = async () => {
   try {
     await connectToDatabase();
 
-    const products = await Product.find();
+    const products = await Product.find().lean();
 
     return JSON.parse(JSON.stringify(products));
   } catch (error) {

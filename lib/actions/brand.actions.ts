@@ -19,7 +19,7 @@ export const getAllBrands = async () => {
   try {
     await connectToDatabase();
 
-    const brands = await Brand.find();
+    const brands = await Brand.find().lean();
 
     return JSON.parse(JSON.stringify(brands));
   } catch (error) {

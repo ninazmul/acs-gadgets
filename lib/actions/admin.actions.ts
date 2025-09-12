@@ -25,7 +25,7 @@ export const getAllAdmins = async () => {
   try {
     await connectToDatabase();
 
-    const admins = await Admin.find();
+    const admins = await Admin.find().lean();
 
     return JSON.parse(JSON.stringify(admins));
   } catch (error) {

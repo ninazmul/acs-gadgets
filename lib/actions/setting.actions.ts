@@ -26,7 +26,7 @@ export const createSetting = async (params: SettingParams) => {
 export const getSetting = async () => {
   try {
     await connectToDatabase();
-    const setting = await Setting.findOne();
+    const setting = await Setting.findOne().lean();
     return setting ? JSON.parse(JSON.stringify(setting)) : null;
   } catch (error) {
     handleError(error);
