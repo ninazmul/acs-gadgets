@@ -139,3 +139,8 @@ body {
 .cl-formButtonPrimary:active {
   background-color: #705cf7;
 }
+
+.swiper-button-next,
+.swiper-button-prev {
+  display: none !important;
+}

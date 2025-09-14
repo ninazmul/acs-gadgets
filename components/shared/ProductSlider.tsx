@@ -4,7 +4,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/autoplay";
-import { Autoplay } from "swiper/modules";
+import { Navigation, Autoplay } from "swiper/modules";
 import { IProduct } from "@/lib/database/models/product.model";
 import SliderCard from "./SliderCard";
 
@@ -15,7 +15,7 @@ interface Props {
 export default function ProductSlider({ products }: Props) {
   return (
     <Swiper
-      modules={[Autoplay]}
+      modules={[Navigation, Autoplay]}
       navigation
       loop={true}
       autoplay={{

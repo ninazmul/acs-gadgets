@@ -1,7 +1,7 @@
 "use client";
 
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Pagination, Autoplay, Scrollbar } from "swiper/modules";
+import { Navigation, Pagination, Autoplay, Scrollbar } from "swiper/modules";
 import Image from "next/image";
 import { IBanner } from "@/lib/database/models/banner.model";
 
@@ -29,7 +29,7 @@ const BannerCarousel = ({ banners }: BannerCarouselProps) => {
   return (
     <div className="w-full">
       <Swiper
-        modules={[ Pagination, Autoplay, Scrollbar]}
+        modules={[Navigation, Pagination, Autoplay, Scrollbar]}
         loop={!isScrollable}
         autoplay={!isScrollable ? { delay: 4000 } : false}
         pagination={!isScrollable ? { clickable: true } : false}
