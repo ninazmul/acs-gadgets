@@ -215,66 +215,68 @@ const ProductForm = ({
                 </Button>
               </div>
             ))}
-          </div>
-        </div>
+            <div className="">
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                id="multi-upload"
+                onChange={async (e) => {
+                  const files = e.target.files;
+                  if (!files || files.length === 0) return;
 
-        {/* Multiple Upload Button */}
-        <div className="mt-4">
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            className="hidden"
-            id="multi-upload"
-            onChange={async (e) => {
-              const files = e.target.files;
-              if (!files || files.length === 0) return;
+                  setIsUploading(true);
 
-              setIsUploading(true);
+                  const current = form.getValues("images") || [];
 
-              const current = form.getValues("images") || [];
+                  const placeholders = Array.from(files).map(() => ({
+                    imageUrl: "",
+                  }));
+                  form.setValue("images", [...current, ...placeholders]);
 
-              const placeholders = Array.from(files).map(() => ({
-                imageUrl: "",
-              }));
-              form.setValue("images", [...current, ...placeholders]);
-
-              for (let i = 0; i < files.length; i++) {
-                const uploaded = await startUpload([files[i]]);
-                if (uploaded && uploaded[0]) {
-                  const updated = form.getValues("images").map((img, idx) => {
-                    if (idx === current.length + i) {
-                      return { imageUrl: uploaded[0].url };
+                  for (let i = 0; i < files.length; i++) {
+                    const uploaded = await startUpload([files[i]]);
+                    if (uploaded && uploaded[0]) {
+                      const updated = form
+                        .getValues("images")
+                        .map((img, idx) => {
+                          if (idx === current.length + i) {
+                            return { imageUrl: uploaded[0].url };
+                          }
+                          return img;
+                        });
+                      form.setValue("images", updated);
                     }
-                    return img;
-                  });
-                  form.setValue("images", updated);
-                }
-              }
-              setIsUploading(false);
+                  }
+                  setIsUploading(false);
 
-              e.target.value = "";
-            }}
-          />
+                  e.target.value = "";
+                }}
+              />
 
-          {isUploading && (
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/40 text-white">
-              <div className="relative w-12 h-12 mb-2">
-                <div className="absolute inset-0 rounded-full border-4 border-t-transparent border-white animate-spin" />
-                <div className="absolute inset-1 rounded-full bg-white/10 blur" />
-              </div>
-              <p className="text-sm font-medium animate-pulse">Uploading...</p>
+              {isUploading && (
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/40 text-white">
+                  <div className="relative w-12 h-12 mb-2">
+                    <div className="absolute inset-0 rounded-full border-4 border-t-transparent border-white animate-spin" />
+                    <div className="absolute inset-1 rounded-full bg-white/10 blur" />
+                  </div>
+                  <p className="text-sm font-medium animate-pulse">
+                    Uploading...
+                  </p>
+                </div>
+              )}
+
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => document.getElementById("multi-upload")?.click()}
+                disabled={isUploading}
+              >
+                + Upload Multiple Images
+              </Button>
             </div>
-          )}
-
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => document.getElementById("multi-upload")?.click()}
-            disabled={isUploading}
-          >
-            + Upload Image
-          </Button>
+          </div>
         </div>
 
         {/* Price */}
