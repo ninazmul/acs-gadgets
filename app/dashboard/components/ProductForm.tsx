@@ -213,16 +213,6 @@ const ProductForm = ({
                 </Button>
               </div>
             ))}
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => {
-                const current = form.getValues("images") || [];
-                form.setValue("images", [...current, { imageUrl: "" }]);
-              }}
-            >
-              + Add Image
-            </Button>
           </div>
         </div>
 
@@ -271,7 +261,7 @@ const ProductForm = ({
             variant="secondary"
             onClick={() => document.getElementById("multi-upload")?.click()}
           >
-            + Upload Multiple Images
+            + Upload Image
           </Button>
         </div>
 
