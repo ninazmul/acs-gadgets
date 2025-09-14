@@ -226,6 +226,55 @@ const ProductForm = ({
           </div>
         </div>
 
+        {/* Multiple Upload Button */}
+        <div className="mt-4">
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            id="multi-upload"
+            onChange={async (e) => {
+              const files = e.target.files;
+              if (!files || files.length === 0) return;
+
+              const current = form.getValues("images") || [];
+
+              // Step 1: Add placeholders for each file
+              const newPlaceholders = [...current];
+              for (let i = 0; i < files.length; i++) {
+                newPlaceholders.push({ imageUrl: "" });
+              }
+              form.setValue("images", newPlaceholders);
+
+              // Step 2: Upload files one by one and update the placeholders
+              for (let i = 0; i < files.length; i++) {
+                const uploaded = await startUpload([files[i]]);
+                if (uploaded && uploaded[0]) {
+                  const updated = form
+                    .getValues("images")
+                    .map((img, idx) =>
+                      idx === current.length + i
+                        ? { imageUrl: uploaded[0].url }
+                        : img
+                    );
+                  form.setValue("images", updated);
+                }
+              }
+
+              // Reset input so you can re-upload same files if needed
+              e.target.value = "";
+            }}
+          />
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => document.getElementById("multi-upload")?.click()}
+          >
+            + Upload Multiple Images
+          </Button>
+        </div>
+
         {/* Price */}
         <FormField
           control={form.control}
