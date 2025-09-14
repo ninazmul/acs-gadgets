@@ -63,6 +63,7 @@ export default function CategoriesList({
                 alt={category.title}
                 width={200}
                 height={150}
+                unoptimized
                 className="w-full h-32 object-contain mb-2 rounded"
               />
               <h3 className="text-lg font-medium">{category.title}</h3>

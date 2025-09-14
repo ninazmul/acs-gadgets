@@ -119,6 +119,7 @@ const BannerTable = ({
                   alt="Banner Image"
                   height={100}
                   width={100}
+                  unoptimized
                   className="w-14 h-20 object-cover rounded-md"
                 />
               </TableCell>

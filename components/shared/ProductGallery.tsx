@@ -41,6 +41,7 @@ export default function ProductGallery({ images }: Props) {
               alt={`Thumbnail ${index + 1}`}
               width={64}
               height={64}
+              unoptimized
               className="object-cover w-16 h-16"
             />
           </button>
@@ -56,6 +57,7 @@ export default function ProductGallery({ images }: Props) {
               alt={`Selected product image`}
               fill
               sizes="90vw"
+              unoptimized
               className="object-contain p-4"
               priority
             />

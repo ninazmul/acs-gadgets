@@ -42,6 +42,7 @@ const MobileNav = () => {
               alt={settings?.name || "Logo"}
               width={30}
               height={30}
+              unoptimized
             />
             <h1 className="text-2xl md:text-3xl font-serif font-bold">
               <span className="text-primary-600">

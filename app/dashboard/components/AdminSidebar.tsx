@@ -114,6 +114,7 @@ const AdminSidebar = ({
                 src={settings?.logo || "/assets/images/logo.png"}
                 width={40}
                 height={40}
+                unoptimized
                 alt={settings?.name || "Logo"}
               />
               <h1 className="text-lg font-serif font-bold text-[#3e0078]">
