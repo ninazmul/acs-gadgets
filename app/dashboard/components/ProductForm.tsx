@@ -230,29 +230,24 @@ const ProductForm = ({
 
               const current = form.getValues("images") || [];
 
-              // Step 1: Add placeholders for each file
-              const newPlaceholders = [...current];
-              for (let i = 0; i < files.length; i++) {
-                newPlaceholders.push({ imageUrl: "" });
-              }
-              form.setValue("images", newPlaceholders);
+              const placeholders = Array.from(files).map(() => ({
+                imageUrl: "",
+              }));
+              form.setValue("images", [...current, ...placeholders]);
 
-              // Step 2: Upload files one by one and update the placeholders
               for (let i = 0; i < files.length; i++) {
                 const uploaded = await startUpload([files[i]]);
                 if (uploaded && uploaded[0]) {
-                  const updated = form
-                    .getValues("images")
-                    .map((img, idx) =>
-                      idx === current.length + i
-                        ? { imageUrl: uploaded[0].url }
-                        : img
-                    );
+                  const updated = form.getValues("images").map((img, idx) => {
+                    if (idx === current.length + i) {
+                      return { imageUrl: uploaded[0].url };
+                    }
+                    return img;
+                  });
                   form.setValue("images", updated);
                 }
               }
 
-              // Reset input so you can re-upload same files if needed
               e.target.value = "";
             }}
           />
