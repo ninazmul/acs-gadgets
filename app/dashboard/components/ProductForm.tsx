@@ -24,6 +24,7 @@ import { ICategory } from "@/lib/database/models/category.model";
 import Select from "react-select";
 import { IBrand } from "@/lib/database/models/brand.model";
 import FeatureEditor from "@/components/shared/FeatureEditor";
+import { useState } from "react";
 
 const productFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -68,6 +69,7 @@ const ProductForm = ({
   brands,
 }: ProductFormProps) => {
   const router = useRouter();
+  const [isUploading, setIsUploading] = useState(false);
   const { startUpload } = useUploadThing("imageUploader");
 
   const initialValues =
@@ -228,6 +230,8 @@ const ProductForm = ({
               const files = e.target.files;
               if (!files || files.length === 0) return;
 
+              setIsUploading(true);
+
               const current = form.getValues("images") || [];
 
               const placeholders = Array.from(files).map(() => ({
@@ -247,14 +251,27 @@ const ProductForm = ({
                   form.setValue("images", updated);
                 }
               }
+              setIsUploading(false);
 
               e.target.value = "";
             }}
           />
+
+          {isUploading && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/40 text-white">
+              <div className="relative w-12 h-12 mb-2">
+                <div className="absolute inset-0 rounded-full border-4 border-t-transparent border-white animate-spin" />
+                <div className="absolute inset-1 rounded-full bg-white/10 blur" />
+              </div>
+              <p className="text-sm font-medium animate-pulse">Uploading...</p>
+            </div>
+          )}
+
           <Button
             type="button"
             variant="secondary"
             onClick={() => document.getElementById("multi-upload")?.click()}
+            disabled={isUploading}
           >
             + Upload Image
           </Button>
