@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, DM_Serif_Display } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import { Analytics } from "@vercel/analytics/next"
 
 import "./globals.css";
 import { ISetting } from "@/lib/database/models/setting.model";
@@ -144,6 +145,7 @@ export default async function RootLayout({
       <html lang="en">
         <body className={`${inter.variable} ${dmSerif.variable} font-sans`}>
           {children}
+          <Analytics/>
         </body>
       </html>
     </ClerkProvider>
