@@ -34,13 +34,24 @@ export default function ProductFiltersClient({
   );
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 32;
+  const pageFromURL = parseInt(searchParams.get("page") || "1", 10);
+  const [currentPage, setCurrentPage] = useState(
+    isNaN(pageFromURL) ? 1 : pageFromURL
+  );
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    const pageFromURL = parseInt(searchParams.get("page") || "1", 10);
+    setCurrentPage(isNaN(pageFromURL) ? 1 : pageFromURL);
+  }, [searchParams]);
 
   useEffect(() => {
     const searchFromURL = searchParams.get("search") || "";
     const categoryFromURL = searchParams.get("category");
     const subCategoryFromURL = searchParams.get("subCategory");
+    const minFromURL = searchParams.get("min") || "";
+    const maxFromURL = searchParams.get("max") || "";
 
     setSearch(searchFromURL);
 
@@ -56,8 +67,8 @@ export default function ProductFiltersClient({
       setSelectedSubCategories([]);
     }
 
-    setMinPrice("");
-    setMaxPrice("");
+    setMinPrice(minFromURL);
+    setMaxPrice(maxFromURL);
   }, [searchParams]);
 
   const applyFilters = useCallback(() => {
@@ -97,7 +108,6 @@ export default function ProductFiltersClient({
     }
 
     setFilteredProducts(filtered);
-    setCurrentPage(1);
   }, [
     rawProducts,
     search,
@@ -112,6 +122,22 @@ export default function ProductFiltersClient({
   }, [applyFilters]);
 
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    setCurrentPage(1);
+  }, [
+    search,
+    selectedCategories,
+    selectedSubCategories,
+    minPrice,
+    maxPrice,
+    isMounted,
+  ]);
+
+  useEffect(() => {
     const params = new URLSearchParams();
     if (search.trim()) params.set("search", search.trim());
     if (selectedCategories.length > 0)
@@ -120,6 +146,9 @@ export default function ProductFiltersClient({
       params.set("subCategory", selectedSubCategories.join(","));
     if (minPrice) params.set("min", minPrice);
     if (maxPrice) params.set("max", maxPrice);
+
+    params.set("page", String(currentPage)); // ✅ persist page
+
     router.replace(`/products?${params.toString()}`);
   }, [
     search,
@@ -127,6 +156,7 @@ export default function ProductFiltersClient({
     selectedSubCategories,
     minPrice,
     maxPrice,
+    currentPage, // ✅ add this
     router,
   ]);
 
@@ -159,33 +189,64 @@ export default function ProductFiltersClient({
   );
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
-  const Pagination = () => (
-    <div className="flex justify-center gap-2 mt-6 flex-wrap">
-      <Button
-        variant="outline"
-        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-        disabled={currentPage === 1}
-      >
-        Prev
-      </Button>
-      {[...Array(totalPages)].map((_, index) => (
+  const Pagination = () => {
+    const pageNumbers: (number | string)[] = [];
+    const maxVisible = 5; // pages around current
+    const ellipsis = "...";
+
+    if (totalPages <= maxVisible + 2) {
+      for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
+    } else {
+      pageNumbers.push(1); // first page
+
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+
+      if (start > 2) pageNumbers.push(ellipsis);
+      for (let i = start; i <= end; i++) pageNumbers.push(i);
+      if (end < totalPages - 1) pageNumbers.push(ellipsis);
+
+      pageNumbers.push(totalPages); // last page
+    }
+
+    return (
+      <div className="flex justify-center gap-2 mt-6 flex-wrap">
         <Button
-          key={index + 1}
-          variant={currentPage === index + 1 ? "default" : "outline"}
-          onClick={() => setCurrentPage(index + 1)}
+          variant="outline"
+          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          disabled={currentPage === 1}
         >
-          {index + 1}
+          Prev
         </Button>
-      ))}
-      <Button
-        variant="outline"
-        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-        disabled={currentPage === totalPages}
-      >
-        Next
-      </Button>
-    </div>
-  );
+
+        {pageNumbers.map((num, index) =>
+          num === ellipsis ? (
+            <span key={index} className="px-2 py-1 text-gray-500">
+              {ellipsis}
+            </span>
+          ) : (
+            <Button
+              key={index}
+              variant={currentPage === num ? "default" : "outline"}
+              onClick={() => setCurrentPage(Number(num))}
+            >
+              {num}
+            </Button>
+          )
+        )}
+
+        <Button
+          variant="outline"
+          onClick={() =>
+            setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+          }
+          disabled={currentPage === totalPages}
+        >
+          Next
+        </Button>
+      </div>
+    );
+  };
 
   const FilterContent = () => (
     <div className="space-y-6 p-4">
