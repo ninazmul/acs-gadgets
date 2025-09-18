@@ -120,11 +120,6 @@ export default function ProductFiltersClient({
     applyFilters();
   }, [applyFilters]);
 
-  useEffect(() => {
-    const timeout = setTimeout(() => applyFilters(), 300);
-    return () => clearTimeout(timeout);
-  }, [applyFilters, search]);
-
   // Utility: compare arrays ignoring order
   const arraysEqualIgnoreOrder = (a: string[], b: string[]) => {
     if (a.length !== b.length) return false;
