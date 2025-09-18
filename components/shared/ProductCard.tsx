@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 
 type ProductCardProps = {
   _id: string;
@@ -22,21 +21,12 @@ const ProductCard = ({
   category,
   images,
 }: ProductCardProps) => {
-  const router = useRouter();
   const firstImage = images?.[0]?.imageUrl || "/assets/images/placeholder.png";
   const secondImage = images?.[1]?.imageUrl || firstImage;
 
-  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    // Allow ctrl+click / middle-click to still open in new tab
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
-
-    e.preventDefault(); // prevent full reload
-    router.push(`/products/${_id}`, { scroll: false }); // client-side navigation, no scroll reset
-  };
   return (
     <a
       href={`/products/${_id}`}
-      onClick={handleClick}
       className="group p-2 lg:p-4 border rounded-md overflow-hidden bg-white shadow-sm hover:shadow-md transition-transform transform hover:scale-[1.02] duration-300"
     >
       <div className="w-full h-24 md:h-36 lg:h-64 relative overflow-hidden rounded-md bg-gray-100">
