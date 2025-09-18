@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,6 @@ export default function ProductFiltersClient({
   const [currentPage, setCurrentPage] = useState(
     isNaN(pageFromURL) ? 1 : pageFromURL
   );
-  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     const pageFromURL = parseInt(searchParams.get("page") || "1", 10);
@@ -122,19 +121,54 @@ export default function ProductFiltersClient({
   }, [applyFilters]);
 
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
+    const timeout = setTimeout(() => applyFilters(), 300);
+    return () => clearTimeout(timeout);
+  }, [applyFilters, search]);
+
+  // Utility: compare arrays ignoring order
+  const arraysEqualIgnoreOrder = (a: string[], b: string[]) => {
+    if (a.length !== b.length) return false;
+    const sortedA = [...a].sort();
+    const sortedB = [...b].sort();
+    for (let i = 0; i < sortedA.length; i++)
+      if (sortedA[i] !== sortedB[i]) return false;
+    return true;
+  };
+
+  // State to track last applied filters
+  const [lastFilters, setLastFilters] = useState({
+    search,
+    categories: selectedCategories,
+    subCategories: selectedSubCategories,
+    minPrice,
+    maxPrice,
+  });
 
   useEffect(() => {
-    if (!isMounted) return;
-    setCurrentPage(1);
+    const filtersChanged =
+      lastFilters.search !== search ||
+      lastFilters.minPrice !== minPrice ||
+      lastFilters.maxPrice !== maxPrice ||
+      !arraysEqualIgnoreOrder(lastFilters.categories, selectedCategories) ||
+      !arraysEqualIgnoreOrder(lastFilters.subCategories, selectedSubCategories);
+
+    if (filtersChanged) {
+      setCurrentPage(1); // reset page only if filters changed
+      setLastFilters({
+        search,
+        categories: selectedCategories,
+        subCategories: selectedSubCategories,
+        minPrice,
+        maxPrice,
+      });
+    }
   }, [
     search,
     selectedCategories,
     selectedSubCategories,
     minPrice,
     maxPrice,
-    isMounted,
+    lastFilters,
   ]);
 
   useEffect(() => {
@@ -147,7 +181,7 @@ export default function ProductFiltersClient({
     if (minPrice) params.set("min", minPrice);
     if (maxPrice) params.set("max", maxPrice);
 
-    params.set("page", String(currentPage)); // ✅ persist page
+    params.set("page", String(currentPage));
 
     router.replace(`/products?${params.toString()}`);
   }, [
@@ -156,13 +190,20 @@ export default function ProductFiltersClient({
     selectedSubCategories,
     minPrice,
     maxPrice,
-    currentPage, // ✅ add this
+    currentPage,
     router,
   ]);
 
-  const categories = Array.from(new Set(rawProducts.map((p) => p.category)));
-  const subCategories = Array.from(
-    new Set(rawProducts.flatMap((p) => p.subCategory || []).filter(Boolean))
+  const categories = useMemo(
+    () => Array.from(new Set(rawProducts.map((p) => p.category))),
+    [rawProducts]
+  );
+  const subCategories = useMemo(
+    () =>
+      Array.from(
+        new Set(rawProducts.flatMap((p) => p.subCategory || []).filter(Boolean))
+      ),
+    [rawProducts]
   );
 
   const handleCategoryChange = (category: string) => {
