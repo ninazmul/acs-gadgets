@@ -26,6 +26,39 @@ import { IBrand } from "@/lib/database/models/brand.model";
 import FeatureEditor from "@/components/shared/FeatureEditor";
 import { useState } from "react";
 
+import { DndContext, closestCenter, DragEndEvent } from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
+// Sortable Item Component
+function SortableImage({
+  id,
+  children,
+}: {
+  id: string;
+  children: React.ReactNode;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    cursor: "grab",
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      {children}
+    </div>
+  );
+}
+
 const productFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
@@ -69,7 +102,7 @@ const ProductForm = ({
   brands,
 }: ProductFormProps) => {
   const router = useRouter();
-  const [isUploading, setIsUploading] = useState(false);
+  const [uploadingIndexes, setUploadingIndexes] = useState<number[]>([]);
   const { startUpload } = useUploadThing("imageUploader");
 
   const initialValues =
@@ -159,8 +192,157 @@ const ProductForm = ({
           )}
         />
 
+        <DndContext
+          collisionDetection={closestCenter}
+          onDragEnd={(event: DragEndEvent) => {
+            const { active, over } = event;
+            if (over && active.id !== over.id) {
+              const images = form.getValues("images") || [];
+              const oldIndex = images.findIndex((_, i) => `${i}` === active.id);
+              const newIndex = images.findIndex((_, i) => `${i}` === over.id);
+              const reordered = arrayMove(images, oldIndex, newIndex);
+              form.setValue("images", reordered);
+            }
+          }}
+        >
+          <SortableContext
+            items={form.watch("images").map((_, idx) => `${idx}`)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {form.watch("images")?.map((item, index) => (
+                <SortableImage key={index} id={`${index}`}>
+                  <div className="relative flex flex-col gap-2 border rounded-lg p-3 bg-muted/40 shadow-sm">
+                    {/* per-image loading overlay */}
+                    {uploadingIndexes.includes(index) && (
+                      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/40 text-white rounded-lg">
+                        <div className="relative w-8 h-8 mb-1">
+                          <div className="absolute inset-0 rounded-full border-4 border-t-transparent border-white animate-spin" />
+                        </div>
+                        <p className="text-xs font-medium animate-pulse">
+                          Uploading...
+                        </p>
+                      </div>
+                    )}
+
+                    <FormField
+                      control={form.control}
+                      name={`images.${index}.imageUrl`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Upload Image</FormLabel>
+                          <FormControl>
+                            <FileUploader
+                              onFieldChange={async (_blobUrl, files) => {
+                                if (files && files.length > 0) {
+                                  setUploadingIndexes((prev) => [
+                                    ...prev,
+                                    index,
+                                  ]);
+                                  const uploaded = await startUpload(files);
+                                  if (uploaded && uploaded[0]) {
+                                    const newImages = form
+                                      .getValues("images")
+                                      .map((img, idx) =>
+                                        idx === index
+                                          ? {
+                                              ...img,
+                                              imageUrl: uploaded[0].url,
+                                            }
+                                          : img
+                                      );
+                                    form.setValue("images", newImages);
+                                  }
+                                  setUploadingIndexes((prev) =>
+                                    prev.filter((i) => i !== index)
+                                  );
+                                }
+                              }}
+                              imageUrl={field.value || ""}
+                              setFiles={() => {}}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      onClick={() => {
+                        const current = form.getValues("images") || [];
+                        const updated = [
+                          ...current.slice(0, index),
+                          ...current.slice(index + 1),
+                        ];
+                        form.setValue("images", updated);
+                      }}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                </SortableImage>
+              ))}
+              {/* multi-upload button */}
+              <div className="relative flex flex-col gap-2 border rounded-lg p-3 bg-muted/40 shadow-sm">
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  id="multi-upload"
+                  onChange={async (e) => {
+                    const files = e.target.files;
+                    if (!files || files.length === 0) return;
+
+                    const current = form.getValues("images") || [];
+                    const placeholders = Array.from(files).map(() => ({
+                      imageUrl: "",
+                    }));
+                    form.setValue("images", [...current, ...placeholders]);
+
+                    for (let i = 0; i < files.length; i++) {
+                      const currentIndex = current.length + i;
+                      setUploadingIndexes((prev) => [...prev, currentIndex]);
+
+                      const uploaded = await startUpload([files[i]]);
+                      if (uploaded && uploaded[0]) {
+                        const updated = form
+                          .getValues("images")
+                          .map((img, idx) =>
+                            idx === currentIndex
+                              ? { imageUrl: uploaded[0].url }
+                              : img
+                          );
+                        form.setValue("images", updated);
+                      }
+
+                      setUploadingIndexes((prev) =>
+                        prev.filter((x) => x !== currentIndex)
+                      );
+                    }
+
+                    e.target.value = "";
+                  }}
+                />
+
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() =>
+                    document.getElementById("multi-upload")?.click()
+                  }
+                >
+                  + Upload Multiple Images
+                </Button>
+              </div>
+            </div>
+          </SortableContext>
+        </DndContext>
+
         {/* Images */}
-        <div className="space-y-2">
+        {/* <div className="space-y-2">
           <h3 className="text-lg font-medium">Product Images</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {form.watch("images")?.map((item, index) => (
@@ -277,7 +459,7 @@ const ProductForm = ({
               </Button>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Price */}
         <FormField
