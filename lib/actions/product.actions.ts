@@ -53,40 +53,6 @@ export const getProductsBySubCategory = async (subCategory: string) => {
   }
 };
 
-export const getProductsByCategory = async (category: string) => {
-  try {
-    await connectToDatabase();
-
-    const products = await Product.find({ category })
-      .sort({ createdAt: -1 })
-      .lean();
-
-    return JSON.parse(JSON.stringify(products));
-  } catch (error) {
-    handleError(error);
-  }
-};
-
-export const searchProducts = async (query: string) => {
-  try {
-    await connectToDatabase();
-
-    const products = await Product.find({
-      $or: [
-        { title: { $regex: query, $options: "i" } },
-        { description: { $regex: query, $options: "i" } },
-        { tags: { $regex: query, $options: "i" } },
-      ],
-    })
-      .sort({ createdAt: -1 })
-      .lean();
-
-    return JSON.parse(JSON.stringify(products));
-  } catch (error) {
-    handleError(error);
-  }
-};
-
 export const updateProduct = async (
   productId: string,
   updateData: Partial<ProductParams>
