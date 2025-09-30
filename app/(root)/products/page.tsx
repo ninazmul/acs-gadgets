@@ -1,12 +1,17 @@
+import { Suspense } from "react";
 import ProductFiltersClient from "@/components/shared/ProductFiltersClient";
 import { getAllProducts } from "@/lib/actions/product.actions";
+import Loader from "@/components/shared/Loader";
 
 export default async function ProductPage() {
-  const products = await getAllProducts();
+
+  const products = (await getAllProducts()) || [];
 
   return (
-    <div>
-      <ProductFiltersClient rawProducts={products} />
-    </div>
+    <Suspense fallback={<Loader />}>
+      <ProductFiltersClient
+        rawProducts={products}
+      />
+    </Suspense>
   );
 }
