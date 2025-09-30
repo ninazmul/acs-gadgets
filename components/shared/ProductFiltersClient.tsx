@@ -14,6 +14,7 @@ import {
 import { Filter } from "lucide-react";
 import { IProduct } from "@/lib/database/models/product.model";
 import ProductCard from "@/components/shared/ProductCard";
+import { searchProducts } from "@/lib/actions/product.actions";
 
 interface ProductFiltersClientProps {
   rawProducts: IProduct[];
@@ -25,6 +26,9 @@ export default function ProductFiltersClient({
   const searchParams = useSearchParams();
   const router = useRouter();
 
+  const productsPerPage = 32;
+
+  // Filter states
   const [filteredProducts, setFilteredProducts] =
     useState<IProduct[]>(rawProducts);
   const [search, setSearch] = useState(searchParams.get("search") || "");
@@ -34,17 +38,14 @@ export default function ProductFiltersClient({
   );
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
-  const productsPerPage = 32;
+
+  // Pagination state
   const pageFromURL = parseInt(searchParams.get("page") || "1", 10);
   const [currentPage, setCurrentPage] = useState(
     isNaN(pageFromURL) ? 1 : pageFromURL
   );
 
-  useEffect(() => {
-    const pageFromURL = parseInt(searchParams.get("page") || "1", 10);
-    setCurrentPage(isNaN(pageFromURL) ? 1 : pageFromURL);
-  }, [searchParams]);
-
+  // Sync filters from URL
   useEffect(() => {
     const searchFromURL = searchParams.get("search") || "";
     const categoryFromURL = searchParams.get("category");
@@ -53,119 +54,52 @@ export default function ProductFiltersClient({
     const maxFromURL = searchParams.get("max") || "";
 
     setSearch(searchFromURL);
-
-    if (categoryFromURL) {
-      setSelectedCategories(categoryFromURL.split(","));
-    } else {
-      setSelectedCategories([]);
-    }
-
-    if (subCategoryFromURL) {
-      setSelectedSubCategories(subCategoryFromURL.split(","));
-    } else {
-      setSelectedSubCategories([]);
-    }
-
+    setSelectedCategories(categoryFromURL ? categoryFromURL.split(",") : []);
+    setSelectedSubCategories(
+      subCategoryFromURL ? subCategoryFromURL.split(",") : []
+    );
     setMinPrice(minFromURL);
     setMaxPrice(maxFromURL);
   }, [searchParams]);
 
-  const applyFilters = useCallback(() => {
-    let filtered = rawProducts;
+  // Fetch filtered products from server
+  const fetchFilteredProducts = useCallback(async () => {
+    try {
+      const results: IProduct[] = await searchProducts(search);
+      // Apply client-side additional filters (category, subcategory, price)
+      let filtered = results;
 
-    // Search
-    if (search.trim()) {
-      filtered = filtered.filter((product) =>
-        product.title.toLowerCase().includes(search.toLowerCase())
-      );
-    }
+      if (selectedCategories.length > 0) {
+        filtered = filtered.filter((p) =>
+          selectedCategories.includes(p.category)
+        );
+      }
 
-    // Category filter
-    if (selectedCategories.length > 0) {
-      filtered = filtered.filter((product) =>
-        selectedCategories.includes(product.category)
-      );
-    }
+      if (selectedSubCategories.length > 0) {
+        filtered = filtered.filter((p) =>
+          p.subCategory?.some((sub) => selectedSubCategories.includes(sub))
+        );
+      }
 
-    // SubCategory filter (array check)
-    if (selectedSubCategories.length > 0) {
-      filtered = filtered.filter((product) =>
-        product.subCategory?.some((sub: string) =>
-          selectedSubCategories.includes(sub)
-        )
-      );
-    }
+      const min = parseFloat(minPrice);
+      const max = parseFloat(maxPrice);
+      if (!isNaN(min))
+        filtered = filtered.filter((p) => parseFloat(p.price) >= min);
+      if (!isNaN(max))
+        filtered = filtered.filter((p) => parseFloat(p.price) <= max);
 
-    // Price filter
-    const min = parseFloat(minPrice);
-    const max = parseFloat(maxPrice);
-    if (!isNaN(min)) {
-      filtered = filtered.filter((product) => parseFloat(product.price) >= min);
+      setFilteredProducts(filtered);
+      setCurrentPage(1);
+    } catch (err) {
+      console.error("Error fetching products:", err);
     }
-    if (!isNaN(max)) {
-      filtered = filtered.filter((product) => parseFloat(product.price) <= max);
-    }
-
-    setFilteredProducts(filtered);
-  }, [
-    rawProducts,
-    search,
-    selectedCategories,
-    selectedSubCategories,
-    minPrice,
-    maxPrice,
-  ]);
+  }, [search, selectedCategories, selectedSubCategories, minPrice, maxPrice]);
 
   useEffect(() => {
-    applyFilters();
-  }, [applyFilters]);
+    fetchFilteredProducts();
+  }, [fetchFilteredProducts]);
 
-  // Utility: compare arrays ignoring order
-  const arraysEqualIgnoreOrder = (a: string[], b: string[]) => {
-    if (a.length !== b.length) return false;
-    const sortedA = [...a].sort();
-    const sortedB = [...b].sort();
-    for (let i = 0; i < sortedA.length; i++)
-      if (sortedA[i] !== sortedB[i]) return false;
-    return true;
-  };
-
-  // State to track last applied filters
-  const [lastFilters, setLastFilters] = useState({
-    search,
-    categories: selectedCategories,
-    subCategories: selectedSubCategories,
-    minPrice,
-    maxPrice,
-  });
-
-  useEffect(() => {
-    const filtersChanged =
-      lastFilters.search !== search ||
-      lastFilters.minPrice !== minPrice ||
-      lastFilters.maxPrice !== maxPrice ||
-      !arraysEqualIgnoreOrder(lastFilters.categories, selectedCategories) ||
-      !arraysEqualIgnoreOrder(lastFilters.subCategories, selectedSubCategories);
-
-    if (filtersChanged) {
-      setCurrentPage(1); // reset page only if filters changed
-      setLastFilters({
-        search,
-        categories: selectedCategories,
-        subCategories: selectedSubCategories,
-        minPrice,
-        maxPrice,
-      });
-    }
-  }, [
-    search,
-    selectedCategories,
-    selectedSubCategories,
-    minPrice,
-    maxPrice,
-    lastFilters,
-  ]);
-
+  // Update URL when filters change
   useEffect(() => {
     const params = new URLSearchParams();
     if (search.trim()) params.set("search", search.trim());
@@ -175,7 +109,6 @@ export default function ProductFiltersClient({
       params.set("subCategory", selectedSubCategories.join(","));
     if (minPrice) params.set("min", minPrice);
     if (maxPrice) params.set("max", maxPrice);
-
     params.set("page", String(currentPage));
 
     router.replace(`/products?${params.toString()}`);
@@ -189,6 +122,75 @@ export default function ProductFiltersClient({
     router,
   ]);
 
+  // Pagination
+  const indexOfLastProduct = currentPage * productsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+  const currentProducts = filteredProducts.slice(
+    indexOfFirstProduct,
+    indexOfLastProduct
+  );
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+
+  const Pagination = () => {
+    const pageNumbers: (number | string)[] = [];
+    const maxVisible = 5;
+    const ellipsis = "...";
+
+    if (totalPages <= maxVisible + 2) {
+      for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
+    } else {
+      pageNumbers.push(1);
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+      if (start > 2) pageNumbers.push(ellipsis);
+      for (let i = start; i <= end; i++) pageNumbers.push(i);
+      if (end < totalPages - 1) pageNumbers.push(ellipsis);
+      pageNumbers.push(totalPages);
+    }
+
+    const handlePageChange = (page: number) => {
+      if (page < 1 || page > totalPages || page === currentPage) return;
+      setCurrentPage(page);
+    };
+
+    return (
+      <div className="flex justify-center gap-2 mt-6 flex-wrap">
+        <Button
+          variant="outline"
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          Prev
+        </Button>
+
+        {pageNumbers.map((num, idx) =>
+          num === ellipsis ? (
+            <span key={idx} className="px-2 py-1 text-gray-500">
+              {ellipsis}
+            </span>
+          ) : (
+            <Button
+              key={idx}
+              variant={currentPage === num ? "default" : "outline"}
+              onClick={() => handlePageChange(Number(num))}
+            >
+              {num}
+            </Button>
+          )
+        )}
+
+        <Button
+          variant="outline"
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          Next
+        </Button>
+      </div>
+    );
+  };
+
+  // Generate categories and subcategories dynamically
   const categories = useMemo(
     () => Array.from(new Set(rawProducts.map((p) => p.category))),
     [rawProducts]
@@ -208,79 +210,9 @@ export default function ProductFiltersClient({
         : [...prev, category]
     );
   };
-
-  const handleSubCategoryChange = (subCategory: string) => {
+  const handleSubCategoryChange = (sub: string) => {
     setSelectedSubCategories((prev) =>
-      prev.includes(subCategory)
-        ? prev.filter((s) => s !== subCategory)
-        : [...prev, subCategory]
-    );
-  };
-
-  const indexOfLastProduct = currentPage * productsPerPage;
-  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-  const currentProducts = filteredProducts.slice(
-    indexOfFirstProduct,
-    indexOfLastProduct
-  );
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-
-  const Pagination = () => {
-    const pageNumbers: (number | string)[] = [];
-    const maxVisible = 5; // pages around current
-    const ellipsis = "...";
-
-    if (totalPages <= maxVisible + 2) {
-      for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
-    } else {
-      pageNumbers.push(1); // first page
-
-      const start = Math.max(2, currentPage - 1);
-      const end = Math.min(totalPages - 1, currentPage + 1);
-
-      if (start > 2) pageNumbers.push(ellipsis);
-      for (let i = start; i <= end; i++) pageNumbers.push(i);
-      if (end < totalPages - 1) pageNumbers.push(ellipsis);
-
-      pageNumbers.push(totalPages); // last page
-    }
-
-    return (
-      <div className="flex justify-center gap-2 mt-6 flex-wrap">
-        <Button
-          variant="outline"
-          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-          disabled={currentPage === 1}
-        >
-          Prev
-        </Button>
-
-        {pageNumbers.map((num, index) =>
-          num === ellipsis ? (
-            <span key={index} className="px-2 py-1 text-gray-500">
-              {ellipsis}
-            </span>
-          ) : (
-            <Button
-              key={index}
-              variant={currentPage === num ? "default" : "outline"}
-              onClick={() => setCurrentPage(Number(num))}
-            >
-              {num}
-            </Button>
-          )
-        )}
-
-        <Button
-          variant="outline"
-          onClick={() =>
-            setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-          }
-          disabled={currentPage === totalPages}
-        >
-          Next
-        </Button>
-      </div>
+      prev.includes(sub) ? prev.filter((s) => s !== sub) : [...prev, sub]
     );
   };
 
@@ -300,7 +232,7 @@ export default function ProductFiltersClient({
         />
       </div>
 
-      {/* Price Range */}
+      {/* Price */}
       <div>
         <label className="block text-sm font-medium">Price Range</label>
         <div className="mt-2 flex gap-2">
@@ -319,7 +251,7 @@ export default function ProductFiltersClient({
         </div>
       </div>
 
-      {/* Category */}
+      {/* Categories */}
       <div>
         <label className="block text-sm font-medium">Category</label>
         <ul className="space-y-2 mt-2 max-h-40 overflow-y-auto pr-1">
@@ -327,21 +259,17 @@ export default function ProductFiltersClient({
             <li key={cat} className="flex items-center">
               <input
                 type="checkbox"
-                id={cat}
-                name="category"
                 checked={selectedCategories.includes(cat)}
                 onChange={() => handleCategoryChange(cat)}
                 className="h-4 w-4 text-primary border-gray-300 rounded"
               />
-              <label htmlFor={cat} className="ml-2 text-sm capitalize">
-                {cat}
-              </label>
+              <label className="ml-2 text-sm capitalize">{cat}</label>
             </li>
           ))}
         </ul>
       </div>
 
-      {/* SubCategory */}
+      {/* SubCategories */}
       <div>
         <label className="block text-sm font-medium">Sub Category</label>
         <ul className="space-y-2 mt-2 max-h-40 overflow-y-auto pr-1">
@@ -349,21 +277,17 @@ export default function ProductFiltersClient({
             <li key={sub} className="flex items-center">
               <input
                 type="checkbox"
-                id={sub}
-                name="subCategory"
                 checked={selectedSubCategories.includes(sub)}
                 onChange={() => handleSubCategoryChange(sub)}
                 className="h-4 w-4 text-primary border-gray-300 rounded"
               />
-              <label htmlFor={sub} className="ml-2 text-sm capitalize">
-                {sub}
-              </label>
+              <label className="ml-2 text-sm capitalize">{sub}</label>
             </li>
           ))}
         </ul>
       </div>
 
-      {/* Clear Filters */}
+      {/* Clear */}
       <Button
         variant="destructive"
         className="w-full"
@@ -382,7 +306,7 @@ export default function ProductFiltersClient({
 
   return (
     <section className="wrapper py-6">
-      {/* Mobile Filter Button */}
+      {/* Mobile Filter */}
       <div className="lg:hidden m-4 flex justify-end">
         <Sheet>
           <SheetTrigger asChild>
@@ -399,7 +323,6 @@ export default function ProductFiltersClient({
         </Sheet>
       </div>
 
-      {/* Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 p-4">
         {/* Sidebar */}
         <aside className="hidden lg:block border rounded-md p-4 bg-white h-fit sticky top-4">
