@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import type { Metadata } from "next";
 import { Inter, DM_Serif_Display } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
