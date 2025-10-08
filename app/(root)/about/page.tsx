@@ -63,21 +63,21 @@ export default async function AboutPage() {
         {settings.description && (
           <div
             className="
-                prose-headings:font-bold prose-headings:text-gray-900
-                prose-p:text-gray-700 prose-p:leading-relaxed
-                prose-strong:font-bold prose-strong:text-black
-                prose-em:text-gray-800 prose-em:italic
-                prose-u:underline
-                prose-ul:list-disc prose-ul:pl-5
-                prose-ol:list-decimal prose-ol:pl-5
-                prose-li:marker:text-gray-500
-                prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-blockquote:text-gray-600 italic
-                prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:font-mono prose-code:text-pink-600
-                prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:rounded-lg prose-pre:p-4
-                prose-a:text-blue-600 prose-a:underline hover:prose-a:text-blue-800 prose-a:font-medium
-                prose-img:rounded-lg prose-img:shadow-md
-                prose prose-lg dark:prose-invert max-w-none mb-12
-                "
+            prose prose-base max-w-none dark:prose-invert
+            prose-headings:font-semibold prose-headings:text-gray-900
+            prose-p:text-gray-700 prose-p:leading-relaxed
+            prose-strong:font-semibold prose-strong:text-gray-900
+            prose-em:italic prose-em:text-gray-800
+            prose-u:underline
+            prose-ul:list-disc prose-ul:pl-5
+            prose-ol:list-decimal prose-ol:pl-5
+            prose-li:marker:text-gray-500
+            prose-blockquote:border-l-2 prose-blockquote:border-gray-300 prose-blockquote:pl-3 prose-blockquote:text-gray-600 italic
+            prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:font-mono prose-code:text-pink-600
+            prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:rounded-md prose-pre:p-3
+            prose-a:text-blue-600 prose-a:underline hover:prose-a:text-blue-800
+            prose-img:block prose-img:mx-auto prose-img:rounded-md prose-img:shadow-md prose-img:my-4 prose-img:max-w-full prose-img:h-auto
+          "
             dangerouslySetInnerHTML={{ __html: settings.description }}
           />
         )}
