@@ -130,6 +130,7 @@ const ProductTable = ({
             <TableHead>Category</TableHead>
             <TableHead>Brand</TableHead>
             <TableHead>SKU</TableHead>
+            <TableHead>Source</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -148,6 +149,17 @@ const ProductTable = ({
               <TableCell>{product.category}</TableCell>
               <TableCell>{product.brand || "-"}</TableCell>
               <TableCell>{product.sku || "-"}</TableCell>
+              <TableCell>
+                <span
+                  className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                    product.source === "external"
+                      ? "bg-blue-100 text-blue-800"
+                      : "bg-green-100 text-green-800"
+                  }`}
+                >
+                  {product.source}
+                </span>
+              </TableCell>
               <TableCell className="flex items-center space-x-2">
                 <a href={`/dashboard/products/${product._id}/update`}>
                   <Button variant="outline" className="text-blue-500">
