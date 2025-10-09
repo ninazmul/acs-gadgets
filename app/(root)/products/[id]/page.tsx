@@ -43,6 +43,14 @@ const ProductDetails = async ({ params }: PageProps) => {
   const product = await getProductById(id);
   const allProducts = await getAllProducts();
 
+  if (!product) {
+    return (
+      <div className="px-4 py-10 text-center text-xl text-destructive">
+        Product not found.
+      </div>
+    );
+  }
+
   const relatedProducts = allProducts
     .filter((p: IProductDTO) => {
       if (p._id === id) return false;
@@ -57,21 +65,13 @@ const ProductDetails = async ({ params }: PageProps) => {
     })
     .slice(0, 10);
 
-  if (!product) {
-    return (
-      <div className="px-4 py-10 text-center text-xl text-destructive">
-        Product not found.
-      </div>
-    );
-  }
-
   return (
     <section className="px-4 py-10 space-y-10">
       {/* Main Product Layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         {/* Image Gallery */}
         <div className="md:col-span-2">
-          <ProductGallery images={product.images} />
+          <ProductGallery images={product.images ?? []} />
         </div>
 
         {/* Product Info */}
@@ -93,8 +93,9 @@ const ProductDetails = async ({ params }: PageProps) => {
               )}
 
               {/* Subcategories */}
-              {product.subCategory?.length > 0 &&
-                product.subCategory.map((sub: string, i: string) => (
+              {Array.isArray(product.subCategory) &&
+                product.subCategory?.length > 0 &&
+                product.subCategory.map((sub: string, i: number) => (
                   <span
                     key={i}
                     className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded-full border border-blue-300"
@@ -107,8 +108,8 @@ const ProductDetails = async ({ params }: PageProps) => {
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold">{product.title}</h1>
               <ShareButton
-                productId={product._id}
-                productName={product.title}
+                productId={product._id as string}
+                productName={product.title ?? ""}
               />
             </div>
             <Separator />
@@ -126,26 +127,30 @@ const ProductDetails = async ({ params }: PageProps) => {
           </div>
 
           {/* Variations */}
-          {product.variations?.length > 0 && (
-            <div className="space-y-2">
-              <p className="font-medium text-sm">Available Variants:</p>
-              <ul className="flex flex-wrap gap-2">
-                {product.variations.map(
-                  (variant: { name: string; value: string }, index: number) => (
-                    <li
-                      key={index}
-                      className="px-3 py-1 border rounded text-sm bg-muted"
-                    >
-                      {variant.name}: {variant.value}
-                    </li>
-                  )
-                )}
-              </ul>
-            </div>
-          )}
+          {Array.isArray(product.variations) &&
+            product.variations?.length > 0 && (
+              <div className="space-y-2">
+                <p className="font-medium text-sm">Available Variants:</p>
+                <ul className="flex flex-wrap gap-2">
+                  {product.variations.map(
+                    (
+                      variant: { name: string; value: string },
+                      index: number
+                    ) => (
+                      <li
+                        key={index}
+                        className="px-3 py-1 border rounded text-sm bg-muted"
+                      >
+                        {variant.name}: {variant.value}
+                      </li>
+                    )
+                  )}
+                </ul>
+              </div>
+            )}
 
           {/* Features */}
-          {product.features?.length > 0 && (
+          {Array.isArray(product.features) && product.features.length > 0 && (
             <div className="space-y-2">
               <h3 className="text-lg font-semibold">Features</h3>
               <ul className="list-disc list-inside font-bold text-sm">
@@ -186,15 +191,31 @@ const ProductDetails = async ({ params }: PageProps) => {
                 </p>
               )}
 
-              {parseInt(product.stock) > 0 && parseInt(product.stock) <= 3 && (
-                <p className="text-destructive text-sm font-semibold">
-                  Only {product.stock} left in stock!
-                </p>
-              )}
+              {parseInt(product.stock || "0") > 0 &&
+                parseInt(product.stock || "0") <= 3 && (
+                  <p className="text-destructive text-sm font-semibold">
+                    Only {product.stock} left in stock!
+                  </p>
+                )}
 
               {/* Add to Cart Button with Variation Support */}
               {product.stock !== "0" && (
-                <AddToCart product={product} email={email} />
+                <AddToCart
+                  product={{
+                    _id: product._id as string,
+                    title: product.title as string,
+                    images: (product.images ?? []).map((img) => ({
+                      imageUrl: img.imageUrl,
+                      _id: img._id ?? "",
+                    })),
+                    price: product.price as string,
+                    category: product.category as string,
+                    brand: product.brand,
+                    sku: product.sku as string,
+                    variations: product.variations,
+                  }}
+                  email={email}
+                />
               )}
             </CardContent>
           </Card>
@@ -221,7 +242,7 @@ const ProductDetails = async ({ params }: PageProps) => {
             prose-a:text-blue-600 prose-a:underline hover:prose-a:text-blue-800
             prose-img:block prose-img:mx-auto prose-img:rounded-md prose-img:shadow-md prose-img:my-4 prose-img:max-w-full prose-img:h-auto
           "
-          dangerouslySetInnerHTML={{ __html: product.description }}
+          dangerouslySetInnerHTML={{ __html: product.description ?? "" }}
         />
       </div>
 

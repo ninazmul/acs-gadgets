@@ -7,6 +7,7 @@ import Product, {
   IProduct,
   IProductDTO,
 } from "../database/models/product.model";
+import axios from "axios";
 
 // Define type for external API product
 interface IExternalProduct {
@@ -32,49 +33,39 @@ interface IExternalProduct {
 export const createProduct = async (params: ProductParams) => {
   try {
     await connectToDatabase();
-    const newProduct = await Product.create(params);
+
+    const productData = { ...params, source: "local" };
+
+    const newProduct = await Product.create(productData);
     return JSON.parse(JSON.stringify(newProduct));
   } catch (error) {
     handleError(error);
   }
 };
 
-// export const getAllProducts = async () => {
-//   try {
-//     await connectToDatabase();
-
-//     const products = await Product.find().sort({ createdAt: -1 }).lean();
-
-//     return JSON.parse(JSON.stringify(products));
-//   } catch (error) {
-//     handleError(error);
-//   }
-// };
-
+// --- Fetch all products ---
 export const getAllProducts = async (): Promise<IProductDTO[]> => {
   try {
     await connectToDatabase();
 
-    // Local products (plain objects)
+    // Local products
     const localProducts = await Product.find().sort({ createdAt: -1 }).lean();
     const formattedLocal: IProductDTO[] = JSON.parse(
       JSON.stringify(localProducts)
-    ).map((p: Omit<IProduct, keyof Document>) => ({ ...p, source: "local" }));
+    ).map((p: IExternalProduct) => ({ ...p, source: "local" }));
 
     // External products
-    const externalResponse = await fetch(
-      "https://dropandshipping.com/api/products",
-      {
-        headers: { "x-api-key": process.env.PRODUCTS_API_KEY || "" },
-        cache: "no-store",
-      }
-    );
-
     let externalProducts: IProductDTO[] = [];
-    if (externalResponse.ok) {
-      const data: IExternalProduct[] = await externalResponse.json();
-
-      externalProducts = data.map((item) => ({
+    try {
+      const response = await axios.get(
+        "https://dropandshipping.com/api/products",
+        {
+          headers: { "x-api-key": process.env.PRODUCTS_API_KEY },
+        }
+      );
+      const data = response.data;
+      const productsArray = Array.isArray(data) ? data : data?.products || [];
+      externalProducts = productsArray.map((item: IExternalProduct) => ({
         _id: item._id,
         title: item.title,
         description: item.description,
@@ -90,23 +81,48 @@ export const getAllProducts = async (): Promise<IProductDTO[]> => {
         sku: item.sku || "",
         variations: item.variations || [],
         link: item.link || "",
-        createdAt: new Date(item.createdAt),
-        updatedAt: new Date(item.updatedAt),
+        createdAt: item.createdAt ? new Date(item.createdAt) : new Date(),
+        updatedAt: item.updatedAt ? new Date(item.updatedAt) : new Date(),
         source: "external",
       }));
+    } catch (err) {
+      console.error("Failed to fetch external products:", err);
     }
 
-    const allProducts: IProductDTO[] = [...formattedLocal, ...externalProducts];
-
-    allProducts.sort(
+    return [...formattedLocal, ...externalProducts].sort(
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
-
-    return allProducts;
   } catch (error) {
     handleError(error);
     return [];
+  }
+};
+
+// --- Get product by ID ---
+export const getLocalProductById = async (
+  productId: string
+): Promise<(IProduct & { source: "local" }) | null> => {
+  try {
+    await connectToDatabase();
+
+    // Get plain JS object from Mongoose
+    const localProduct = await Product.findById(productId)
+      .lean<IProduct>()
+      .exec();
+
+    if (!localProduct) return null;
+
+    // Convert to plain object and add source
+    const fullProduct: IProduct & { source: "local" } = {
+      ...JSON.parse(JSON.stringify(localProduct)),
+      source: "local",
+    };
+
+    return fullProduct;
+  } catch (error) {
+    handleError(error);
+    return null;
   }
 };
 
@@ -114,25 +130,108 @@ export const getProductById = async (productId: string) => {
   try {
     await connectToDatabase();
 
-    const product = await Product.findById(productId).lean();
+    // Try local first
+    const localProduct = await Product.findById(productId).lean();
+    if (localProduct) return { ...localProduct, source: "local" };
 
-    return product ? JSON.parse(JSON.stringify(product)) : null;
+    // Fallback to external
+    try {
+      const response = await axios.get(
+        `https://dropandshipping.com/api/products/${productId}`,
+        {
+          headers: { "x-api-key": process.env.PRODUCTS_API_KEY },
+        }
+      );
+      const item: IExternalProduct = response.data;
+      if (!item) return null;
+
+      return {
+        _id: item._id,
+        title: item.title,
+        description: item.description,
+        images: item.images || [],
+        price: item.suggestedPrice || "",
+        oldPrice: item.oldPrice || "",
+        buyingPrice: item.price || "",
+        stock: item.stock || "0",
+        category: item.category || "",
+        subCategory: item.subCategory || [],
+        brand: item.brand || "",
+        features: item.features || [],
+        sku: item.sku || "",
+        variations: item.variations || [],
+        link: item.link || "",
+        createdAt: item.createdAt ? new Date(item.createdAt) : new Date(),
+        updatedAt: item.updatedAt ? new Date(item.updatedAt) : new Date(),
+        source: "external",
+      };
+    } catch (err) {
+      console.error("Failed to fetch external product by ID:", err);
+      return null;
+    }
   } catch (error) {
     handleError(error);
+    return null;
   }
 };
 
+// --- Get products by subCategory ---
 export const getProductsBySubCategory = async (subCategory: string) => {
   try {
     await connectToDatabase();
 
-    const products = await Product.find({ subCategory })
+    // Local products
+    const localProducts = await Product.find({ subCategory })
       .sort({ createdAt: -1 })
       .lean();
+    const formattedLocal: IProductDTO[] = JSON.parse(
+      JSON.stringify(localProducts)
+    ).map((p: IExternalProduct) => ({ ...p, source: "local" }));
 
-    return JSON.parse(JSON.stringify(products));
+    // External products
+    let externalProducts: IProductDTO[] = [];
+    try {
+      const response = await axios.get(
+        "https://dropandshipping.com/api/products",
+        {
+          headers: { "x-api-key": process.env.PRODUCTS_API_KEY },
+        }
+      );
+      const data = response.data;
+      const productsArray = Array.isArray(data) ? data : data?.products || [];
+      externalProducts = productsArray
+        .filter((p: IExternalProduct) => p.subCategory?.includes(subCategory))
+        .map((item: IExternalProduct) => ({
+          _id: item._id,
+          title: item.title,
+          description: item.description,
+          images: item.images || [],
+          price: item.suggestedPrice || "",
+          oldPrice: item.oldPrice || "",
+          buyingPrice: item.price || "",
+          stock: item.stock || "0",
+          category: item.category || "",
+          subCategory: item.subCategory || [],
+          brand: item.brand || "",
+          features: item.features || [],
+          sku: item.sku || "",
+          variations: item.variations || [],
+          link: item.link || "",
+          createdAt: item.createdAt ? new Date(item.createdAt) : new Date(),
+          updatedAt: item.updatedAt ? new Date(item.updatedAt) : new Date(),
+          source: "external",
+        }));
+    } catch (err) {
+      console.error("Failed to fetch external products:", err);
+    }
+
+    return [...formattedLocal, ...externalProducts].sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
   } catch (error) {
     handleError(error);
+    return [];
   }
 };
 

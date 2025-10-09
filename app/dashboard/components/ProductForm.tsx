@@ -88,7 +88,7 @@ const productFormSchema = z.object({
 
 type ProductFormProps = {
   type: "Create" | "Update";
-  product?: IProduct;
+  product?: IProduct & { source?: string };
   productId?: string;
   categories?: ICategory[];
   brands?: IBrand[];

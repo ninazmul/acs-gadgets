@@ -55,6 +55,7 @@ export interface ProductParams {
     additionalPrice?: string;
   }[];
   link?: string;
+  source?: "local" | "external";
 }
 
 export interface CategoryParams {

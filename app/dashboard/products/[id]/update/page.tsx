@@ -1,7 +1,7 @@
 import ProductForm from "@/app/dashboard/components/ProductForm";
 import { getAllBrands } from "@/lib/actions/brand.actions";
 import { getAllCategories } from "@/lib/actions/category.actions";
-import { getProductById } from "@/lib/actions/product.actions";
+import { getLocalProductById } from "@/lib/actions/product.actions";
 import { redirect } from "next/navigation";
 
 type PageProps = {
@@ -10,7 +10,7 @@ type PageProps = {
 const UpdatePage = async ({ params }: PageProps) => {
   const { id } = await params;
 
-  const product = await getProductById(id);
+  const product = await getLocalProductById(id);
   if (!product) redirect("/dashboard/products");
 
   const categories = await getAllCategories();

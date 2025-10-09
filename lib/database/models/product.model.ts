@@ -12,7 +12,7 @@ export interface IProduct extends Document {
   buyingPrice?: string;
   stock: string;
   category: string;
-  subCategory?: string[]; 
+  subCategory?: string[];
   brand?: string;
   features?: string[];
   sku: string;
@@ -22,6 +22,7 @@ export interface IProduct extends Document {
     additionalPrice?: string;
   }[];
   link?: string;
+  source?: "local" | "external";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -73,6 +74,7 @@ const ProductSchema = new Schema<IProduct>(
       },
     ],
     link: { type: String },
+    source: { type: String, enum: ["local", "external"], default: "local" },
   },
   {
     timestamps: true,

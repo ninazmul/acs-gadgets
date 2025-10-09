@@ -5,11 +5,11 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/autoplay";
 import { Navigation, Autoplay } from "swiper/modules";
-import { IProduct } from "@/lib/database/models/product.model";
+import { IProductDTO } from "@/lib/database/models/product.model";
 import SliderCard from "./SliderCard";
 
 interface Props {
-  products: IProduct[];
+  products: IProductDTO[];
 }
 
 export default function ProductSlider({ products }: Props) {
