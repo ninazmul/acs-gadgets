@@ -24,7 +24,7 @@ import DashboardStats from "./components/DashboardStats";
 import { getUserByClerkId, getUserEmailById } from "@/lib/actions/user.actions";
 import { isAdmin } from "@/lib/actions/admin.actions";
 import { useUser } from "@clerk/nextjs";
-import { IProduct } from "@/lib/database/models/product.model";
+import { IProductDTO } from "@/lib/database/models/product.model";
 
 // Register Chart.js components
 ChartJS.register(
@@ -40,7 +40,7 @@ ChartJS.register(
 const Dashboard = () => {
   const { user } = useUser();
   const userId = user?.id || "";
-  const [products, setProducts] = useState<IProduct[]>([]);
+  const [products, setProducts] = useState<IProductDTO[]>([]);
   const [orders, setOrders] = useState([]);
   const [banners, setBanners] = useState([]);
   const [categories, setCategories] = useState([]);

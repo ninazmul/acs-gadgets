@@ -12,11 +12,11 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Filter } from "lucide-react";
-import { IProduct } from "@/lib/database/models/product.model";
+import { IProductDTO } from "@/lib/database/models/product.model";
 import ProductCard from "@/components/shared/ProductCard";
 
 interface ProductFiltersClientProps {
-  rawProducts: IProduct[];
+  rawProducts: IProductDTO[];
 }
 
 export default function ProductFiltersClient({
@@ -26,7 +26,7 @@ export default function ProductFiltersClient({
   const router = useRouter();
 
   const [filteredProducts, setFilteredProducts] =
-    useState<IProduct[]>(rawProducts);
+    useState<IProductDTO[]>(rawProducts);
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedSubCategories, setSelectedSubCategories] = useState<string[]>(

@@ -22,11 +22,11 @@ const ProductTable = ({
     _id: string;
     title: string;
     price: string;
-    suggestedPrice: string;
     stock: string;
     category: string;
     brand?: string;
     sku?: string;
+    source: "local" | "external";
   }>;
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
