@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { getProductById, getAllProducts } from "@/lib/actions/product.actions";
 import ProductCard from "@/components/shared/ProductCard";
-import { IProduct } from "@/lib/database/models/product.model";
+import { IProductDTO } from "@/lib/database/models/product.model";
 import AddToCart from "@/components/shared/AddToCart";
 import { auth } from "@clerk/nextjs/server";
 import { getUserEmailById } from "@/lib/actions/user.actions";
@@ -44,7 +44,7 @@ const ProductDetails = async ({ params }: PageProps) => {
   const allProducts = await getAllProducts();
 
   const relatedProducts = allProducts
-    .filter((p: IProduct) => {
+    .filter((p: IProductDTO) => {
       if (p._id === id) return false;
 
       const categoryMatch = p.category === product.category;
@@ -230,7 +230,7 @@ const ProductDetails = async ({ params }: PageProps) => {
         <section className="space-y-4">
           <h2 className="text-xl font-bold">Related Products</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-4">
-            {relatedProducts.slice(0, 10).map((item: IProduct) => (
+            {relatedProducts.slice(0, 10).map((item: IProductDTO) => (
               <ProductCard key={item._id} {...item} />
             ))}
           </div>
