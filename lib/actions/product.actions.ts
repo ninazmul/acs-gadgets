@@ -126,23 +126,36 @@ export const getLocalProductById = async (
   }
 };
 
-export const getProductById = async (productId: string) => {
+export const getProductById = async (
+  productId: string
+): Promise<IProductDTO | null> => {
   try {
     await connectToDatabase();
 
-    // Try local first
-    const localProduct = await Product.findById(productId).lean();
-    if (localProduct) return { ...localProduct, source: "local" };
+    // 1️⃣ Try local DB first
+    const localProduct = await Product.findById(productId)
+      .lean<IProduct>()
+      .exec();
+    if (localProduct) {
+      return { ...JSON.parse(JSON.stringify(localProduct)), source: "local" };
+    }
 
-    // Fallback to external
+    // 2️⃣ Fallback: fetch all external products and filter by ID
     try {
       const response = await axios.get(
-        `https://dropandshipping.com/api/products/${productId}`,
+        "https://dropandshipping.com/api/products/",
         {
           headers: { "x-api-key": process.env.PRODUCTS_API_KEY },
         }
       );
-      const item: IExternalProduct = response.data;
+
+      const data = Array.isArray(response.data)
+        ? response.data
+        : response.data?.products || [];
+      const item: IExternalProduct | undefined = data.find(
+        (p: IExternalProduct) => p._id === productId
+      );
+
       if (!item) return null;
 
       return {
@@ -166,7 +179,7 @@ export const getProductById = async (productId: string) => {
         source: "external",
       };
     } catch (err) {
-      console.error("Failed to fetch external product by ID:", err);
+      console.error("Failed to fetch external products:", err);
       return null;
     }
   } catch (error) {

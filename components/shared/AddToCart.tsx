@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -39,10 +40,11 @@ type CartItem = {
 
 type AddToCartProps = {
   product: Product;
-  email: string;
+  email?: string; // make optional to check if user is logged in
 };
 
 const AddToCart = ({ product, email }: AddToCartProps) => {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [selectedVariation, setSelectedVariation] = useState<Variation | null>(
@@ -57,6 +59,11 @@ const AddToCart = ({ product, email }: AddToCartProps) => {
   const finalPrice = basePrice + additionalPrice;
 
   useEffect(() => {
+    if (!email) {
+      router.push("/sign-in"); // redirect if not logged in
+      return;
+    }
+
     const fetchCart = async () => {
       try {
         const items = await getCartsByEmail(email);
@@ -66,7 +73,7 @@ const AddToCart = ({ product, email }: AddToCartProps) => {
       }
     };
     fetchCart();
-  }, [email]);
+  }, [email, router]);
 
   const isAlreadyInCart = () => {
     return cartItems.some((item) => {
@@ -84,6 +91,11 @@ const AddToCart = ({ product, email }: AddToCartProps) => {
   };
 
   const handleAddToCart = async () => {
+    if (!email) {
+      router.push("/sign-in");
+      return;
+    }
+
     if (product.variations && product.variations.length > 0 && !selectedVariation) {
       toast.error("Please select a variation before adding to cart.");
       return;

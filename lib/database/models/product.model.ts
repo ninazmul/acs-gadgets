@@ -31,7 +31,9 @@ export interface IProductDTO {
   _id: string;
   title: string;
   description: string;
-  images: { imageUrl: string }[];
+  images: {
+    _id: string; imageUrl: string 
+}[];
   price: string;
   oldPrice?: string;
   buyingPrice?: string;
