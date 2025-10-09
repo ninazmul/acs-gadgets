@@ -9,6 +9,8 @@ import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
 import axios from "axios";
 import Loader from "@/components/shared/Loader";
+import { getSetting } from "@/lib/actions/setting.actions";
+import { ISetting } from "@/lib/database/models/setting.model";
 
 type CartItem = {
   _id: string;
@@ -46,6 +48,14 @@ export default function CheckoutPage() {
   const [note, setNote] = useState("");
   const [shipping, setShipping] = useState<number>(110);
   const [paymentMethod, setPaymentMethod] = useState<"bkash" | "cod">("cod");
+  const [settings, setSettings] = useState<ISetting | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const setting = await getSetting();
+      setSettings(setting);
+    })();
+  }, []);
 
   const [customer, setCustomer] = useState<Customer>({
     name: "",
@@ -70,10 +80,9 @@ export default function CheckoutPage() {
     [subtotal, shipping]
   );
 
-  const ADVANCE_AMOUNT = useMemo(
-    () => (paymentMethod === "bkash" ? (subtotal ?? 0) + (shipping ?? 0) : 200),
-    [paymentMethod, subtotal, shipping]
-  );
+  const ADVANCE_AMOUNT = useMemo(() => {
+    return paymentMethod === "bkash" ? subtotal + shipping : shipping;
+  }, [paymentMethod, subtotal, shipping]);
 
   // Fetch cart data
   useEffect(() => {
@@ -109,7 +118,11 @@ export default function CheckoutPage() {
     setCustomer((prev) => ({ ...prev, [name]: value }));
 
     if (name === "district") {
-      setShipping(value.toLowerCase() === "dhaka" ? 60 : 120);
+      setShipping(
+        value.toLowerCase() === "dhaka"
+          ? Number(settings?.deliveryCharge.insideDhaka) || 0
+          : Number(settings?.deliveryCharge.outSideDhaka) || 0
+      );
     }
   };
 
@@ -289,7 +302,7 @@ export default function CheckoutPage() {
                 checked={paymentMethod === "cod"}
                 onChange={() => setPaymentMethod("cod")}
               />
-              Cash on Delivery (৳200 advance)
+              Cash on Delivery (৳{shipping} advance)
             </label>
             <label className="inline-flex items-center cursor-pointer">
               <input
