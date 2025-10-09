@@ -183,6 +183,11 @@ export type SettingParams = {
   termsOfService?: string;
   privacyPolicy?: string;
   registrationAmount?: string;
+  deliveryCharge: {
+    insideDhaka?: string;
+    outSideDhaka?: string;
+    PickupPoint?: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 };

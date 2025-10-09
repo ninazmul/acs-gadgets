@@ -30,6 +30,11 @@ const settingSchema = z.object({
   phoneNumber: z.string().min(1, "Phone number is required"),
   address: z.string().optional(),
   registrationAmount: z.string().min(0).optional(),
+  deliveryCharge: z.object({
+    insideDhaka: z.coerce.string().min(0).optional(),
+    outSideDhaka: z.coerce.string().min(0).optional(),
+    PickupPoint: z.coerce.string().min(0).optional(),
+  }),
   facebook: z.string().url().optional(),
   instagram: z.string().url().optional(),
   twitter: z.string().url().optional(),
@@ -255,7 +260,13 @@ export default function SettingForm({ initialData, onSubmit }: Props) {
                 <Input
                   type="number"
                   placeholder="Registration Amount"
-                  {...field}
+                  value={
+                    typeof field.value === "string" ||
+                    typeof field.value === "number"
+                      ? field.value
+                      : ""
+                  }
+                  onChange={field.onChange}
                   onBlur={saveField}
                 />
               </FormControl>
@@ -263,6 +274,87 @@ export default function SettingForm({ initialData, onSubmit }: Props) {
             </FormItem>
           )}
         />
+
+        {/* ✅ Delivery Charge */}
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold">Delivery Charge</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="deliveryCharge.insideDhaka"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Inside Dhaka</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="Inside Dhaka delivery charge..."
+                      value={
+                        typeof field.value === "string" ||
+                        typeof field.value === "number"
+                          ? field.value
+                          : ""
+                      }
+                      onChange={field.onChange}
+                      onBlur={saveField}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="deliveryCharge.outSideDhaka"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Outside Dhaka</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="Outside Dhaka delivery charge..."
+                      value={
+                        typeof field.value === "string" ||
+                        typeof field.value === "number"
+                          ? field.value
+                          : ""
+                      }
+                      onChange={field.onChange}
+                      onBlur={saveField}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="deliveryCharge.PickupPoint"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Pick-Up Point</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="Pick-Up Point delivery charge..."
+                      value={
+                        typeof field.value === "string" ||
+                        typeof field.value === "number"
+                          ? field.value
+                          : ""
+                      }
+                      onChange={field.onChange}
+                      onBlur={saveField}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
 
         {/* Social Media URLs */}
         {["facebook", "instagram", "twitter", "facebookGroup", "youtube"].map(
@@ -280,7 +372,13 @@ export default function SettingForm({ initialData, onSubmit }: Props) {
                     <Input
                       type="url"
                       placeholder={`${field} URL`}
-                      {...f}
+                      value={
+                        typeof f.value === "string" ||
+                        typeof f.value === "number"
+                          ? f.value
+                          : ""
+                      }
+                      onChange={f.onChange}
                       onBlur={saveField}
                     />
                   </FormControl>

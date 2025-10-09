@@ -20,6 +20,11 @@ export interface ISetting extends Document {
   termsOfService?: string;
   privacyPolicy?: string;
   registrationAmount?: string;
+  deliveryCharge: {
+    insideDhaka?: string;
+    outSideDhaka?: string;
+    PickupPoint?: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -44,6 +49,11 @@ const SettingSchema = new Schema<ISetting>(
     termsOfService: { type: String },
     privacyPolicy: { type: String },
     registrationAmount: { type: String, default: 0 },
+    deliveryCharge: {
+      insideDhaka: { type: String, default: 0 },
+      outSideDhaka: { type: String, default: 0 },
+      PickupPoint: { type: String, default: 0 },
+    },
   },
   {
     timestamps: true,
