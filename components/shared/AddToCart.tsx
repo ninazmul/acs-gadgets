@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -40,11 +39,10 @@ type CartItem = {
 
 type AddToCartProps = {
   product: Product;
-  email?: string; // make optional to check if user is logged in
+  email: string;
 };
 
 const AddToCart = ({ product, email }: AddToCartProps) => {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [selectedVariation, setSelectedVariation] = useState<Variation | null>(
@@ -59,11 +57,6 @@ const AddToCart = ({ product, email }: AddToCartProps) => {
   const finalPrice = basePrice + additionalPrice;
 
   useEffect(() => {
-    if (!email) {
-      router.push("/sign-in"); // redirect if not logged in
-      return;
-    }
-
     const fetchCart = async () => {
       try {
         const items = await getCartsByEmail(email);
@@ -73,7 +66,7 @@ const AddToCart = ({ product, email }: AddToCartProps) => {
       }
     };
     fetchCart();
-  }, [email, router]);
+  }, [email]);
 
   const isAlreadyInCart = () => {
     return cartItems.some((item) => {
@@ -82,27 +75,32 @@ const AddToCart = ({ product, email }: AddToCartProps) => {
 
       if (selectedVariation && item.variations) {
         return item.variations.some(
-          (v) => v.name === selectedVariation.name && v.value === selectedVariation.value
+          (v) =>
+            v.name === selectedVariation.name &&
+            v.value === selectedVariation.value
         );
       }
 
-      return !selectedVariation && (!item.variations || item.variations.length === 0);
+      return (
+        !selectedVariation && (!item.variations || item.variations.length === 0)
+      );
     });
   };
 
   const handleAddToCart = async () => {
-    if (!email) {
-      router.push("/sign-in");
-      return;
-    }
-
-    if (product.variations && product.variations.length > 0 && !selectedVariation) {
+    if (
+      product.variations &&
+      product.variations.length > 0 &&
+      !selectedVariation
+    ) {
       toast.error("Please select a variation before adding to cart.");
       return;
     }
 
     if (isAlreadyInCart()) {
-      toast.error("This product with the same variation and quantity is already in your cart.");
+      toast.error(
+        "This product with the same variation and quantity is already in your cart."
+      );
       return;
     }
 
@@ -190,17 +188,26 @@ const AddToCart = ({ product, email }: AddToCartProps) => {
         Total: ৳{(finalPrice * quantity).toFixed(2)}
       </div>
 
-      {/* Add to Cart Button */}
-      <Button
-        onClick={handleAddToCart}
-        disabled={
-          loading ||
-          (!!product.variations && product.variations.length > 0 && !selectedVariation)
-        }
-        className="w-full"
-      >
-        {loading ? "Adding..." : "Add to Cart"}
-      </Button>
+      {email ? (
+        <Button
+          onClick={handleAddToCart}
+          disabled={
+            loading ||
+            (!!product.variations &&
+              product.variations.length > 0 &&
+              !selectedVariation)
+          }
+          className="w-full"
+        >
+          {loading ? "Adding..." : "Add to Cart"}
+        </Button>
+      ) : (
+        <a href={"/sign-in"}>
+          <Button disabled={!email} className="w-full">
+            {loading ? "Adding..." : "Add to Cart"}
+          </Button>
+        </a>
+      )}
     </div>
   );
 };

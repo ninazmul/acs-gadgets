@@ -162,7 +162,10 @@ export const getProductById = async (
         _id: item._id,
         title: item.title,
         description: item.description,
-        images: item.images || [],
+        images: (item.images || []).map((img, index) => ({
+          _id: img._id || `external-${index}`,
+          imageUrl: img.imageUrl,
+        })),
         price: item.suggestedPrice || "",
         oldPrice: item.oldPrice || "",
         buyingPrice: item.price || "",
