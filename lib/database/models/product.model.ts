@@ -26,6 +26,27 @@ export interface IProduct extends Document {
   updatedAt: Date;
 }
 
+export interface IProductDTO {
+  _id: string;
+  title: string;
+  description: string;
+  images: { imageUrl: string }[];
+  price: string;
+  oldPrice?: string;
+  buyingPrice?: string;
+  stock: string;
+  category: string;
+  subCategory?: string[];
+  brand?: string;
+  features?: string[];
+  sku: string;
+  variations?: { name: string; value: string; additionalPrice?: string }[];
+  link?: string;
+  source: "local" | "external";
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 const ProductSchema = new Schema<IProduct>(
   {
     title: { type: String, required: true, trim: true },

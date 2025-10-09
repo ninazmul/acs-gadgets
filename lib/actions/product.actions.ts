@@ -3,7 +3,31 @@
 import { ProductParams } from "@/types";
 import { handleError } from "../utils";
 import { connectToDatabase } from "../database";
-import Product from "../database/models/product.model";
+import Product, {
+  IProduct,
+  IProductDTO,
+} from "../database/models/product.model";
+
+// Define type for external API product
+interface IExternalProduct {
+  _id: string;
+  title: string;
+  description: string;
+  images: { imageUrl: string; _id?: string }[];
+  price: string;
+  suggestedPrice: string;
+  oldPrice?: string;
+  stock: string;
+  category: string;
+  subCategory?: string[];
+  brand?: string;
+  features?: string[];
+  sku: string;
+  variations?: { name: string; value: string; additionalPrice?: string }[];
+  link?: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export const createProduct = async (params: ProductParams) => {
   try {
@@ -15,15 +39,74 @@ export const createProduct = async (params: ProductParams) => {
   }
 };
 
-export const getAllProducts = async () => {
+// export const getAllProducts = async () => {
+//   try {
+//     await connectToDatabase();
+
+//     const products = await Product.find().sort({ createdAt: -1 }).lean();
+
+//     return JSON.parse(JSON.stringify(products));
+//   } catch (error) {
+//     handleError(error);
+//   }
+// };
+
+export const getAllProducts = async (): Promise<IProductDTO[]> => {
   try {
     await connectToDatabase();
 
-    const products = await Product.find().sort({ createdAt: -1 }).lean();
+    // Local products (plain objects)
+    const localProducts = await Product.find().sort({ createdAt: -1 }).lean();
+    const formattedLocal: IProductDTO[] = JSON.parse(
+      JSON.stringify(localProducts)
+    ).map((p: Omit<IProduct, keyof Document>) => ({ ...p, source: "local" }));
 
-    return JSON.parse(JSON.stringify(products));
+    // External products
+    const externalResponse = await fetch(
+      "https://dropandshipping.com/api/products",
+      {
+        headers: { "x-api-key": process.env.PRODUCTS_API_KEY || "" },
+        cache: "no-store",
+      }
+    );
+
+    let externalProducts: IProductDTO[] = [];
+    if (externalResponse.ok) {
+      const data: IExternalProduct[] = await externalResponse.json();
+
+      externalProducts = data.map((item) => ({
+        _id: item._id,
+        title: item.title,
+        description: item.description,
+        images: item.images || [],
+        price: item.suggestedPrice || "",
+        oldPrice: item.oldPrice || "",
+        buyingPrice: item.price || "",
+        stock: item.stock || "0",
+        category: item.category || "",
+        subCategory: item.subCategory || [],
+        brand: item.brand || "",
+        features: item.features || [],
+        sku: item.sku || "",
+        variations: item.variations || [],
+        link: item.link || "",
+        createdAt: new Date(item.createdAt),
+        updatedAt: new Date(item.updatedAt),
+        source: "external",
+      }));
+    }
+
+    const allProducts: IProductDTO[] = [...formattedLocal, ...externalProducts];
+
+    allProducts.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    return allProducts;
   } catch (error) {
     handleError(error);
+    return [];
   }
 };
 
