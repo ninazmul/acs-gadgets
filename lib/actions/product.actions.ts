@@ -72,8 +72,8 @@ export const getAllProducts = async (): Promise<IProductDTO[]> => {
         images: item.images || [],
         price:
           !item.suggestedPrice || item.suggestedPrice === item.price
-            ? (Number(item.price) + 200).toString()
-            : item.suggestedPrice + 50,
+            ? (parseFloat(item.price) + 200).toString()
+            : (parseFloat(item.suggestedPrice) + 50).toString(),
         oldPrice: item.oldPrice || "",
         buyingPrice: item.price || "",
         stock: item.stock || "0",
@@ -171,8 +171,8 @@ export const getProductById = async (
         })),
         price:
           !item.suggestedPrice || item.suggestedPrice === item.price
-            ? (Number(item.price) + 200).toString()
-            : item.suggestedPrice + 50,
+            ? (parseFloat(item.price) + 200).toString()
+            : (parseFloat(item.suggestedPrice) + 50).toString(),
         oldPrice: item.oldPrice || "",
         buyingPrice: item.price || "",
         stock: item.stock || "0",
@@ -230,8 +230,8 @@ export const getProductsBySubCategory = async (subCategory: string) => {
           images: item.images || [],
           price:
             !item.suggestedPrice || item.suggestedPrice === item.price
-              ? (Number(item.price) + 200).toString()
-              : item.suggestedPrice + 50,
+              ? (parseFloat(item.price) + 200).toString()
+              : (parseFloat(item.suggestedPrice) + 50).toString(),
           oldPrice: item.oldPrice || "",
           buyingPrice: item.price || "",
           stock: item.stock || "0",
