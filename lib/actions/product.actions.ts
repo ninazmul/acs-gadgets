@@ -70,7 +70,10 @@ export const getAllProducts = async (): Promise<IProductDTO[]> => {
         title: item.title,
         description: item.description,
         images: item.images || [],
-        price: item.suggestedPrice || "",
+        price:
+          !item.suggestedPrice || item.suggestedPrice === item.price
+            ? (Number(item.price) + 100).toString()
+            : item.suggestedPrice,
         oldPrice: item.oldPrice || "",
         buyingPrice: item.price || "",
         stock: item.stock || "0",
@@ -166,7 +169,10 @@ export const getProductById = async (
           _id: img._id || `external-${index}`,
           imageUrl: img.imageUrl,
         })),
-        price: item.suggestedPrice || "",
+        price:
+          !item.suggestedPrice || item.suggestedPrice === item.price
+            ? (Number(item.price) + 100).toString()
+            : item.suggestedPrice,
         oldPrice: item.oldPrice || "",
         buyingPrice: item.price || "",
         stock: item.stock || "0",
@@ -222,7 +228,10 @@ export const getProductsBySubCategory = async (subCategory: string) => {
           title: item.title,
           description: item.description,
           images: item.images || [],
-          price: item.suggestedPrice || "",
+          price:
+            !item.suggestedPrice || item.suggestedPrice === item.price
+              ? (Number(item.price) + 100).toString()
+              : item.suggestedPrice,
           oldPrice: item.oldPrice || "",
           buyingPrice: item.price || "",
           stock: item.stock || "0",
