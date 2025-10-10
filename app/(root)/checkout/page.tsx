@@ -46,7 +46,7 @@ export default function CheckoutPage() {
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [note, setNote] = useState("");
-  const [shipping, setShipping] = useState<number>(110);
+  const [shipping, setShipping] = useState<number>(120);
   const [paymentMethod, setPaymentMethod] = useState<"bkash" | "cod">("cod");
   const [settings, setSettings] = useState<ISetting | null>(null);
 
