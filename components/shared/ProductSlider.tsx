@@ -19,7 +19,7 @@ export default function ProductSlider({ products }: Props) {
       navigation
       loop={true}
       autoplay={{
-        delay: 3000,
+        delay: 10000,
         disableOnInteraction: false,
         pauseOnMouseEnter: true,
       }}
@@ -34,7 +34,7 @@ export default function ProductSlider({ products }: Props) {
     >
       {products.map((product) => (
         <SwiperSlide key={product._id} className="h-auto">
-          <div className="h-full border p-4 rounded-md">
+          <div className="h-full border p-2 lg:p-4 rounded-md">
             <SliderCard {...product} />
           </div>
         </SwiperSlide>
