@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -25,9 +25,8 @@ export default function ProductFiltersClient({
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const [filteredProducts, setFilteredProducts] =
-    useState<IProductDTO[]>(rawProducts);
-  const [search, setSearch] = useState(searchParams.get("search") || "");
+  // Filter state
+  const [search, setSearch] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedSubCategories, setSelectedSubCategories] = useState<string[]>(
     []
@@ -35,137 +34,28 @@ export default function ProductFiltersClient({
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const productsPerPage = 32;
-  const pageFromURL = parseInt(searchParams.get("page") || "1", 10);
-  const [currentPage, setCurrentPage] = useState(
-    isNaN(pageFromURL) ? 1 : pageFromURL
-  );
+  const [currentPage, setCurrentPage] = useState(1);
 
+  // Sync filters with URL on mount & whenever URL changes
   useEffect(() => {
-    const pageFromURL = parseInt(searchParams.get("page") || "1", 10);
-    setCurrentPage(isNaN(pageFromURL) ? 1 : pageFromURL);
+    const searchParam = searchParams.get("search") || "";
+    const categoryParam = searchParams.get("category") || "";
+    const subCategoryParam = searchParams.get("subCategory") || "";
+    const minParam = searchParams.get("min") || "";
+    const maxParam = searchParams.get("max") || "";
+    const pageParam = parseInt(searchParams.get("page") || "1", 10);
+
+    setSearch(searchParam);
+    setSelectedCategories(categoryParam ? categoryParam.split(",") : []);
+    setSelectedSubCategories(
+      subCategoryParam ? subCategoryParam.split(",") : []
+    );
+    setMinPrice(minParam);
+    setMaxPrice(maxParam);
+    setCurrentPage(isNaN(pageParam) ? 1 : pageParam);
   }, [searchParams]);
 
-  useEffect(() => {
-    const searchFromURL = searchParams.get("search") || "";
-    const categoryFromURL = searchParams.get("category");
-    const subCategoryFromURL = searchParams.get("subCategory");
-    const minFromURL = searchParams.get("min") || "";
-    const maxFromURL = searchParams.get("max") || "";
-
-    setSearch(searchFromURL);
-
-    if (categoryFromURL) {
-      setSelectedCategories(categoryFromURL.split(","));
-    } else {
-      setSelectedCategories([]);
-    }
-
-    if (subCategoryFromURL) {
-      setSelectedSubCategories(subCategoryFromURL.split(","));
-    } else {
-      setSelectedSubCategories([]);
-    }
-
-    setMinPrice(minFromURL);
-    setMaxPrice(maxFromURL);
-  }, [searchParams]);
-
-  const applyFilters = useCallback(() => {
-    let filtered = rawProducts;
-
-    // Search
-    if (search.trim()) {
-      filtered = filtered.filter((product) =>
-        product.title.toLowerCase().includes(search.toLowerCase())
-      );
-    }
-
-    // Category filter
-    if (selectedCategories.length > 0) {
-      filtered = filtered.filter((product) =>
-        selectedCategories.includes(product.category)
-      );
-    }
-
-    // SubCategory filter (array check)
-    if (selectedSubCategories.length > 0) {
-      filtered = filtered.filter((product) =>
-        product.subCategory?.some((sub: string) =>
-          selectedSubCategories.includes(sub)
-        )
-      );
-    }
-
-    // Price filter
-    const min = parseFloat(minPrice);
-    const max = parseFloat(maxPrice);
-    if (!isNaN(min)) {
-      filtered = filtered.filter((product) => parseFloat(product.price) >= min);
-    }
-    if (!isNaN(max)) {
-      filtered = filtered.filter((product) => parseFloat(product.price) <= max);
-    }
-
-    setFilteredProducts(filtered);
-  }, [
-    rawProducts,
-    search,
-    selectedCategories,
-    selectedSubCategories,
-    minPrice,
-    maxPrice,
-  ]);
-
-  useEffect(() => {
-    applyFilters();
-  }, [applyFilters]);
-
-  // Utility: compare arrays ignoring order
-  const arraysEqualIgnoreOrder = (a: string[], b: string[]) => {
-    if (a.length !== b.length) return false;
-    const sortedA = [...a].sort();
-    const sortedB = [...b].sort();
-    for (let i = 0; i < sortedA.length; i++)
-      if (sortedA[i] !== sortedB[i]) return false;
-    return true;
-  };
-
-  // State to track last applied filters
-  const [lastFilters, setLastFilters] = useState({
-    search,
-    categories: selectedCategories,
-    subCategories: selectedSubCategories,
-    minPrice,
-    maxPrice,
-  });
-
-  useEffect(() => {
-    const filtersChanged =
-      lastFilters.search !== search ||
-      lastFilters.minPrice !== minPrice ||
-      lastFilters.maxPrice !== maxPrice ||
-      !arraysEqualIgnoreOrder(lastFilters.categories, selectedCategories) ||
-      !arraysEqualIgnoreOrder(lastFilters.subCategories, selectedSubCategories);
-
-    if (filtersChanged) {
-      setCurrentPage(1); // reset page only if filters changed
-      setLastFilters({
-        search,
-        categories: selectedCategories,
-        subCategories: selectedSubCategories,
-        minPrice,
-        maxPrice,
-      });
-    }
-  }, [
-    search,
-    selectedCategories,
-    selectedSubCategories,
-    minPrice,
-    maxPrice,
-    lastFilters,
-  ]);
-
+  // Update URL automatically whenever filters change
   useEffect(() => {
     const params = new URLSearchParams();
     if (search.trim()) params.set("search", search.trim());
@@ -175,7 +65,6 @@ export default function ProductFiltersClient({
       params.set("subCategory", selectedSubCategories.join(","));
     if (minPrice) params.set("min", minPrice);
     if (maxPrice) params.set("max", maxPrice);
-
     params.set("page", String(currentPage));
 
     router.replace(`/products?${params.toString()}`);
@@ -189,10 +78,51 @@ export default function ProductFiltersClient({
     router,
   ]);
 
+  // Filtered products computed instantly
+  const filteredProducts = useMemo(() => {
+    let filtered = rawProducts;
+
+    if (search.trim()) {
+      filtered = filtered.filter((p) =>
+        p.title.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    if (selectedCategories.length > 0) {
+      filtered = filtered.filter((p) =>
+        selectedCategories.includes(p.category)
+      );
+    }
+
+    if (selectedSubCategories.length > 0) {
+      filtered = filtered.filter((p) =>
+        p.subCategory?.some((sub) => selectedSubCategories.includes(sub))
+      );
+    }
+
+    const min = parseFloat(minPrice);
+    const max = parseFloat(maxPrice);
+    if (!isNaN(min))
+      filtered = filtered.filter((p) => parseFloat(p.price) >= min);
+    if (!isNaN(max))
+      filtered = filtered.filter((p) => parseFloat(p.price) <= max);
+
+    return filtered;
+  }, [
+    rawProducts,
+    search,
+    selectedCategories,
+    selectedSubCategories,
+    minPrice,
+    maxPrice,
+  ]);
+
+  // Categories & Subcategories
   const categories = useMemo(
     () => Array.from(new Set(rawProducts.map((p) => p.category))),
     [rawProducts]
   );
+
   const subCategories = useMemo(
     () =>
       Array.from(
@@ -201,28 +131,34 @@ export default function ProductFiltersClient({
     [rawProducts]
   );
 
-  const handleCategoryChange = (category: string) => {
+  // Handlers
+  const handleCategoryChange = (cat: string) => {
     setSelectedCategories((prev) =>
-      prev.includes(category)
-        ? prev.filter((c) => c !== category)
-        : [...prev, category]
+      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
     );
+    setCurrentPage(1);
   };
 
-  const handleSubCategoryChange = (subCategory: string) => {
+  const handleSubCategoryChange = (sub: string) => {
     setSelectedSubCategories((prev) =>
-      prev.includes(subCategory)
-        ? prev.filter((s) => s !== subCategory)
-        : [...prev, subCategory]
+      prev.includes(sub) ? prev.filter((s) => s !== sub) : [...prev, sub]
     );
+    setCurrentPage(1);
   };
 
-  const indexOfLastProduct = currentPage * productsPerPage;
-  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-  const currentProducts = filteredProducts.slice(
-    indexOfFirstProduct,
-    indexOfLastProduct
-  );
+  const clearFilters = () => {
+    setSearch("");
+    setSelectedCategories([]);
+    setSelectedSubCategories([]);
+    setMinPrice("");
+    setMaxPrice("");
+    setCurrentPage(1);
+  };
+
+  // Pagination logic
+  const indexOfLast = currentPage * productsPerPage;
+  const indexOfFirst = indexOfLast - productsPerPage;
+  const currentProducts = filteredProducts.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
   const Pagination = () => {
@@ -286,7 +222,6 @@ export default function ProductFiltersClient({
 
   const FilterContent = () => (
     <div className="space-y-6 p-4">
-      {/* Search */}
       <div>
         <label htmlFor="search" className="block text-sm font-medium">
           Search
@@ -300,7 +235,6 @@ export default function ProductFiltersClient({
         />
       </div>
 
-      {/* Price Range */}
       <div>
         <label className="block text-sm font-medium">Price Range</label>
         <div className="mt-2 flex gap-2">
@@ -319,7 +253,6 @@ export default function ProductFiltersClient({
         </div>
       </div>
 
-      {/* Category */}
       <div>
         <label className="block text-sm font-medium">Category</label>
         <ul className="space-y-2 mt-2 max-h-40 overflow-y-auto pr-1">
@@ -327,21 +260,16 @@ export default function ProductFiltersClient({
             <li key={cat} className="flex items-center">
               <input
                 type="checkbox"
-                id={cat}
-                name="category"
                 checked={selectedCategories.includes(cat)}
                 onChange={() => handleCategoryChange(cat)}
                 className="h-4 w-4 text-primary border-gray-300 rounded"
               />
-              <label htmlFor={cat} className="ml-2 text-sm capitalize">
-                {cat}
-              </label>
+              <label className="ml-2 text-sm capitalize">{cat}</label>
             </li>
           ))}
         </ul>
       </div>
 
-      {/* SubCategory */}
       <div>
         <label className="block text-sm font-medium">Sub Category</label>
         <ul className="space-y-2 mt-2 max-h-40 overflow-y-auto pr-1">
@@ -349,32 +277,17 @@ export default function ProductFiltersClient({
             <li key={sub} className="flex items-center">
               <input
                 type="checkbox"
-                id={sub}
-                name="subCategory"
                 checked={selectedSubCategories.includes(sub)}
                 onChange={() => handleSubCategoryChange(sub)}
                 className="h-4 w-4 text-primary border-gray-300 rounded"
               />
-              <label htmlFor={sub} className="ml-2 text-sm capitalize">
-                {sub}
-              </label>
+              <label className="ml-2 text-sm capitalize">{sub}</label>
             </li>
           ))}
         </ul>
       </div>
 
-      {/* Clear Filters */}
-      <Button
-        variant="destructive"
-        className="w-full"
-        onClick={() => {
-          setSearch("");
-          setSelectedCategories([]);
-          setSelectedSubCategories([]);
-          setMinPrice("");
-          setMaxPrice("");
-        }}
-      >
+      <Button variant="destructive" className="w-full" onClick={clearFilters}>
         Clear Filters
       </Button>
     </div>
