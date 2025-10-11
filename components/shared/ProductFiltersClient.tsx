@@ -33,6 +33,7 @@ export default function ProductFiltersClient({
   );
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
+  const [sortBy, setSortBy] = useState("");
   const productsPerPage = 32;
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -43,6 +44,7 @@ export default function ProductFiltersClient({
     const subCategoryParam = searchParams.get("subCategory") || "";
     const minParam = searchParams.get("min") || "";
     const maxParam = searchParams.get("max") || "";
+    const sortParam = searchParams.get("sort") || "";
     const pageParam = parseInt(searchParams.get("page") || "1", 10);
 
     setSearch(searchParam);
@@ -52,6 +54,7 @@ export default function ProductFiltersClient({
     );
     setMinPrice(minParam);
     setMaxPrice(maxParam);
+    setSortBy(sortParam);
     setCurrentPage(isNaN(pageParam) ? 1 : pageParam);
   }, [searchParams]);
 
@@ -65,6 +68,7 @@ export default function ProductFiltersClient({
       params.set("subCategory", selectedSubCategories.join(","));
     if (minPrice) params.set("min", minPrice);
     if (maxPrice) params.set("max", maxPrice);
+    if (sortBy) params.set("sort", sortBy);
     params.set("page", String(currentPage));
 
     router.replace(`/products?${params.toString()}`);
@@ -74,11 +78,12 @@ export default function ProductFiltersClient({
     selectedSubCategories,
     minPrice,
     maxPrice,
+    sortBy,
     currentPage,
     router,
   ]);
 
-  // Filtered products computed instantly
+  // Filtered & sorted products
   const filteredProducts = useMemo(() => {
     let filtered = rawProducts;
 
@@ -107,6 +112,17 @@ export default function ProductFiltersClient({
     if (!isNaN(max))
       filtered = filtered.filter((p) => parseFloat(p.price) <= max);
 
+    // ✅ Sorting logic
+    if (sortBy === "low-to-high") {
+      filtered = [...filtered].sort(
+        (a, b) => parseFloat(a.price) - parseFloat(b.price)
+      );
+    } else if (sortBy === "high-to-low") {
+      filtered = [...filtered].sort(
+        (a, b) => parseFloat(b.price) - parseFloat(a.price)
+      );
+    }
+
     return filtered;
   }, [
     rawProducts,
@@ -115,6 +131,7 @@ export default function ProductFiltersClient({
     selectedSubCategories,
     minPrice,
     maxPrice,
+    sortBy,
   ]);
 
   // Categories & Subcategories
@@ -152,6 +169,7 @@ export default function ProductFiltersClient({
     setSelectedSubCategories([]);
     setMinPrice("");
     setMaxPrice("");
+    setSortBy("");
     setCurrentPage(1);
   };
 
@@ -163,22 +181,19 @@ export default function ProductFiltersClient({
 
   const Pagination = () => {
     const pageNumbers: (number | string)[] = [];
-    const maxVisible = 5; // pages around current
+    const maxVisible = 5;
     const ellipsis = "...";
 
     if (totalPages <= maxVisible + 2) {
       for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
     } else {
-      pageNumbers.push(1); // first page
-
+      pageNumbers.push(1);
       const start = Math.max(2, currentPage - 1);
       const end = Math.min(totalPages - 1, currentPage + 1);
-
       if (start > 2) pageNumbers.push(ellipsis);
       for (let i = start; i <= end; i++) pageNumbers.push(i);
       if (end < totalPages - 1) pageNumbers.push(ellipsis);
-
-      pageNumbers.push(totalPages); // last page
+      pageNumbers.push(totalPages);
     }
 
     return (
@@ -251,6 +266,20 @@ export default function ProductFiltersClient({
             onChange={(e) => setMaxPrice(e.target.value)}
           />
         </div>
+      </div>
+
+      {/* ✅ Sort By Price */}
+      <div>
+        <label className="block text-sm font-medium">Sort by Price</label>
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          className="mt-2 w-full border rounded-md p-2 text-sm"
+        >
+          <option value="">Default</option>
+          <option value="low-to-high">Price: Low to High</option>
+          <option value="high-to-low">Price: High to Low</option>
+        </select>
       </div>
 
       <div>
