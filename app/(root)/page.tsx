@@ -6,10 +6,12 @@ import { getAllBanners } from "@/lib/actions/banner.actions";
 import { getProductsBySubCategory } from "@/lib/actions/product.actions";
 import "swiper/css";
 import "swiper/css/navigation";
+import "swiper/css/autoplay";
 import ProductSlider from "@/components/shared/ProductSlider";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { IProductDTO } from "@/lib/database/models/product.model";
+import { IBanner } from "@/lib/database/models/banner.model";
 
 const subcategories = [
   "New Arrival",
@@ -33,24 +35,31 @@ const subcategories = [
 ];
 
 export default function Home() {
-  const [banners, setBanners] = useState([]);
+  const [banners, setBanners] = useState<IBanner[]>([]);
   const [productsBySubcategory, setProductsBySubcategory] = useState<
     { subcategory: string; products: IProductDTO[] }[]
   >([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
-      const bannerData = await getAllBanners();
-      setBanners(bannerData || []);
+      try {
+        const bannerData = await getAllBanners();
+        setBanners(bannerData || []);
 
-      const productData = await Promise.all(
-        subcategories.map(async (subcategory) => {
-          const products = await getProductsBySubCategory(subcategory);
-          return { subcategory, products };
-        })
-      );
+        const productData = await Promise.all(
+          subcategories.map(async (subcategory) => {
+            const products = await getProductsBySubCategory(subcategory);
+            return { subcategory, products };
+          })
+        );
 
-      setProductsBySubcategory(productData);
+        setProductsBySubcategory(productData);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchData();
@@ -65,7 +74,16 @@ export default function Home() {
     >
       {/* ===== Banners ===== */}
       <section id="banners" className="relative overflow-hidden">
-        {banners?.length > 0 ? (
+        {loading ? (
+          <div className="w-full px-4 flex gap-4 overflow-hidden">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div
+                key={i}
+                className="aspect-[9/16] w-1/5 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse"
+              />
+            ))}
+          </div>
+        ) : banners?.length > 0 ? (
           <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -82,56 +100,83 @@ export default function Home() {
 
       {/* ===== Product Rows by Subcategory ===== */}
       <section id="products" className="space-y-16">
-        {productsBySubcategory.map(
-          ({ subcategory, products }, index) =>
-            products.length > 0 && (
-              <motion.div
-                key={subcategory}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.6, delay: index * 0.05 }}
-                className="my-10 w-full"
-              >
-                {/* ===== Header with Animated Title ===== */}
-                <div className="flex justify-between items-center px-4 mb-6">
-                  <Link
-                    href={`/products?subCategory=${encodeURIComponent(
-                      subcategory
-                    )}`}
-                    className="group relative inline-block text-2xl font-bold tracking-tight text-gray-800 dark:text-white"
-                  >
-                    {subcategory}
-                    <motion.span
-                      layoutId={`underline-${subcategory}`}
-                      className="absolute left-0 -bottom-1 h-[2px] w-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full
-                      transition-all duration-500 group-hover:w-full"
-                    />
-                  </Link>
+        {loading
+          ? // 🔹 Product Skeleton Rows
+            Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="px-4 space-y-6">
+                {/* Subcategory title skeleton */}
+                <div className="h-6 w-40 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
 
-                  <Link
-                    href={`/products?subCategory=${encodeURIComponent(
-                      subcategory
-                    )}`}
-                    className="text-sm font-medium text-blue-500 hover:text-purple-500 transition-colors duration-300"
-                  >
-                    View All →
-                  </Link>
+                {/* Simulated product slider */}
+                <div className="flex gap-4 overflow-hidden">
+                  {Array.from({ length: 5 }).map((_, j) => (
+                    <div
+                      key={j}
+                      className="w-[160px] md:w-[200px] lg:w-[240px] h-[280px] bg-white dark:bg-gray-900 border rounded-md p-2 lg:p-4"
+                    >
+                      {/* Image placeholder */}
+                      <div className="w-full h-24 md:h-36 lg:h-48 bg-gray-200 dark:bg-gray-800 rounded-md mb-3 animate-pulse"></div>
+
+                      {/* Text placeholders */}
+                      <div className="space-y-2">
+                        <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-3/4 animate-pulse"></div>
+                        <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-1/2 animate-pulse"></div>
+                        <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded w-1/3 animate-pulse"></div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
+              </div>
+            ))
+          : // 🔹 Actual Product Rows
+            productsBySubcategory.map(
+              ({ subcategory, products }, index) =>
+                products.length > 0 && (
+                  <motion.div
+                    key={subcategory}
+                    initial={{ opacity: 0, y: 40 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.2 }}
+                    transition={{ duration: 0.6, delay: index * 0.05 }}
+                    className="my-10 w-full"
+                  >
+                    <div className="flex justify-between items-center px-4 mb-6">
+                      <Link
+                        href={`/products?subCategory=${encodeURIComponent(
+                          subcategory
+                        )}`}
+                        className="group relative inline-block text-2xl font-bold tracking-tight text-gray-800 dark:text-white"
+                      >
+                        {subcategory}
+                        <motion.span
+                          layoutId={`underline-${subcategory}`}
+                          className="absolute left-0 -bottom-1 h-[2px] w-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full
+                          transition-all duration-500 group-hover:w-full"
+                        />
+                      </Link>
 
-                {/* ===== Product Slider ===== */}
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.3 }}
-                  transition={{ duration: 0.6 }}
-                  className="px-4"
-                >
-                  <ProductSlider products={products} />
-                </motion.div>
-              </motion.div>
-            )
-        )}
+                      <Link
+                        href={`/products?subCategory=${encodeURIComponent(
+                          subcategory
+                        )}`}
+                        className="text-sm font-medium text-blue-500 hover:text-purple-500 transition-colors duration-300"
+                      >
+                        View All →
+                      </Link>
+                    </div>
+
+                    <motion.div
+                      initial={{ opacity: 0, y: 30 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, amount: 0.3 }}
+                      transition={{ duration: 0.6 }}
+                      className="px-4"
+                    >
+                      <ProductSlider products={products} />
+                    </motion.div>
+                  </motion.div>
+                )
+            )}
       </section>
     </motion.div>
   );
