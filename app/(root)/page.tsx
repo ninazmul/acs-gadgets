@@ -93,7 +93,7 @@ export default function Home() {
             {Array.from({ length: skeletonCount }).map((_, i) => (
               <div
                 key={i}
-                className="aspect-[9/16] flex-1 bg-gray-200 dark:bg-gray-800 rounded-md animate-pulse"
+                className="aspect-[9/16] flex-1 bg-gray-200 dark:bg-gray-800 animate-pulse"
               />
             ))}
           </div>
