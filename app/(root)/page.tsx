@@ -1,3 +1,4 @@
+import Link from "next/link";
 import BannerCarousel from "@/components/shared/BannerCarousel";
 import { getAllBanners } from "@/lib/actions/banner.actions";
 import { getProductsBySubCategory } from "@/lib/actions/product.actions";
@@ -27,7 +28,6 @@ const subcategories = [
 ];
 
 export default async function Home() {
-
   const banners = await getAllBanners();
 
   const productsBySubcategory = await Promise.all(
@@ -54,13 +54,34 @@ export default async function Home() {
           ({ subcategory, products }) =>
             products.length > 0 && (
               <div key={subcategory} className="my-10 w-full">
-                <h2 className="text-xl font-semibold mb-4 px-4">
-                  {subcategory}
-                </h2>
+                <div className="flex justify-between items-center px-4 mb-4">
+                  {/* Subcategory Title with animated underline */}
+                  <Link
+                    href={`/products?subCategory=${encodeURIComponent(
+                      subcategory
+                    )}`}
+                    className="group relative inline-block text-xl font-semibold"
+                  >
+                    {subcategory}
+                    <span
+                      className="absolute left-0 -bottom-1 h-[2px] w-0 bg-gradient-to-r from-blue-500 to-purple-500 
+                      transition-all duration-300 group-hover:w-full"
+                    ></span>
+                  </Link>
+
+                  {/* View All Link */}
+                  <Link
+                    href={`/products?subCategory=${encodeURIComponent(
+                      subcategory
+                    )}`}
+                    className="text-sm text-blue-500 hover:underline"
+                  >
+                    View All →
+                  </Link>
+                </div>
+
                 <div className="px-4">
-                  <ProductSlider
-                    products={products}
-                  />
+                  <ProductSlider products={products} />
                 </div>
               </div>
             )
