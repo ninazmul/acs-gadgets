@@ -8,7 +8,6 @@ import { IProductDTO } from "@/lib/database/models/product.model";
 import AddToCart from "@/components/shared/AddToCart";
 import { auth } from "@clerk/nextjs/server";
 import { getUserEmailById } from "@/lib/actions/user.actions";
-import { Cloud } from "lucide-react";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -118,11 +117,11 @@ const ProductDetails = async ({ params }: PageProps) => {
               <p className="text-2xl font-semibold text-green-500">
                 ৳{product.price}
               </p>
-              {product.oldPrice && (
+              {/* {product.oldPrice && (
                 <p className="text-sm text-muted-foreground line-through">
                   ৳{product.oldPrice}
                 </p>
-              )}
+              )} */}
             </div>
           </div>
 
@@ -158,22 +157,6 @@ const ProductDetails = async ({ params }: PageProps) => {
                   <li key={i}>• {feature}</li>
                 ))}
               </ul>
-
-              <div className="my-2" />
-              <Separator />
-              <div className="my-2" />
-
-              <a
-                href={product.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg
-               bg-gray-800 text-white font-medium shadow-sm 
-               hover:bg-gray-900 hover:shadow-md transition-all duration-200 cursor-pointer"
-              >
-                <Cloud />
-                <span>Access Product Media</span>
-              </a>
             </div>
           )}
         </div>
