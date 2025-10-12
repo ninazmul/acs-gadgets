@@ -17,7 +17,7 @@ const SliderCard = ({
   _id,
   title,
   price,
-  oldPrice,
+  // oldPrice,
   category,
   images,
 }: SliderCardProps) => {
@@ -55,9 +55,9 @@ const SliderCard = ({
 
         <div className="flex items-center gap-2">
           <p className="text-primary font-bold">৳{price}</p>
-          {oldPrice && (
+          {/* {oldPrice && (
             <p className="text-gray-400 line-through text-sm">৳{oldPrice}</p>
-          )}
+          )} */}
         </div>
 
         <p className="text-xs text-gray-500">{category}</p>
