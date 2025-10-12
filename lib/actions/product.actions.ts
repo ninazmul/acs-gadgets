@@ -73,7 +73,7 @@ export const getAllProducts = async (): Promise<IProductDTO[]> => {
         price:
           !item.suggestedPrice || item.suggestedPrice === item.price
             ? (parseFloat(item.price) + 200).toString()
-            : (parseFloat(item.suggestedPrice) + 50).toString(),
+            : (parseFloat(item.suggestedPrice) + 100).toString(),
         oldPrice: item.oldPrice || "",
         buyingPrice: item.price || "",
         stock: item.stock || "0",
@@ -172,7 +172,7 @@ export const getProductById = async (
         price:
           !item.suggestedPrice || item.suggestedPrice === item.price
             ? (parseFloat(item.price) + 200).toString()
-            : (parseFloat(item.suggestedPrice) + 50).toString(),
+            : (parseFloat(item.suggestedPrice) + 100).toString(),
         oldPrice: item.oldPrice || "",
         buyingPrice: item.price || "",
         stock: item.stock || "0",
