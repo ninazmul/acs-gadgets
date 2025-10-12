@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import BannerCarousel from "@/components/shared/BannerCarousel";
 import { getAllBanners } from "@/lib/actions/banner.actions";
 import { getProductsBySubCategory } from "@/lib/actions/product.actions";
@@ -65,6 +64,21 @@ export default function Home() {
     fetchData();
   }, []);
 
+  // 🔹 Determine how many skeletons to show based on screen width
+  const [skeletonCount, setSkeletonCount] = useState(5);
+
+  useEffect(() => {
+    const updateSkeletonCount = () => {
+      if (window.innerWidth < 640) setSkeletonCount(2); // sm: <640px
+      else if (window.innerWidth < 1024) setSkeletonCount(3); // md: <1024px
+      else setSkeletonCount(5); // lg+
+    };
+
+    updateSkeletonCount();
+    window.addEventListener("resize", updateSkeletonCount);
+    return () => window.removeEventListener("resize", updateSkeletonCount);
+  }, []);
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -75,11 +89,11 @@ export default function Home() {
       {/* ===== Banners ===== */}
       <section id="banners" className="relative overflow-hidden">
         {loading ? (
-          <div className="w-full px-4 flex gap-4 overflow-hidden">
-            {Array.from({ length: 5 }).map((_, i) => (
+          <div className="w-full flex gap-4 overflow-hidden">
+            {Array.from({ length: skeletonCount }).map((_, i) => (
               <div
                 key={i}
-                className="aspect-[9/16] w-1/5 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse"
+                className="aspect-[9/16] flex-1 bg-gray-200 dark:bg-gray-800 rounded-md animate-pulse"
               />
             ))}
           </div>
@@ -109,13 +123,13 @@ export default function Home() {
 
                 {/* Simulated product slider */}
                 <div className="flex gap-4 overflow-hidden">
-                  {Array.from({ length: 5 }).map((_, j) => (
+                  {Array.from({ length: skeletonCount }).map((_, j) => (
                     <div
                       key={j}
-                      className="w-[160px] md:w-[200px] lg:w-[240px] h-[280px] bg-white dark:bg-gray-900 border rounded-md p-2 lg:p-4"
+                      className="w-full bg-white dark:bg-gray-900 border rounded-md p-2 lg:p-4"
                     >
                       {/* Image placeholder */}
-                      <div className="w-full h-24 md:h-36 lg:h-48 bg-gray-200 dark:bg-gray-800 rounded-md mb-3 animate-pulse"></div>
+                      <div className="w-full h-24 md:h-36 lg:h-64 bg-gray-200 dark:bg-gray-800 rounded-md mb-3 animate-pulse"></div>
 
                       {/* Text placeholders */}
                       <div className="space-y-2">
@@ -141,7 +155,7 @@ export default function Home() {
                     className="my-10 w-full"
                   >
                     <div className="flex justify-between items-center px-4 mb-6">
-                      <Link
+                      <a
                         href={`/products?subCategory=${encodeURIComponent(
                           subcategory
                         )}`}
@@ -153,16 +167,16 @@ export default function Home() {
                           className="absolute left-0 -bottom-1 h-[2px] w-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full
                           transition-all duration-500 group-hover:w-full"
                         />
-                      </Link>
+                      </a>
 
-                      <Link
+                      <a
                         href={`/products?subCategory=${encodeURIComponent(
                           subcategory
                         )}`}
                         className="text-sm font-medium text-blue-500 hover:text-purple-500 transition-colors duration-300"
                       >
                         View All →
-                      </Link>
+                      </a>
                     </div>
 
                     <motion.div
