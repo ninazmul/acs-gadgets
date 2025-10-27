@@ -11,7 +11,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Filter } from "lucide-react";
+import { Filter, ChevronDown } from "lucide-react";
 import { IProductDTO } from "@/lib/database/models/product.model";
 import ProductCard from "@/components/shared/ProductCard";
 
@@ -34,37 +34,36 @@ export default function ProductFiltersClient({
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [sortBy, setSortBy] = useState("");
-  const productsPerPage = 32;
   const [currentPage, setCurrentPage] = useState(1);
+  const [isFiltering, setIsFiltering] = useState(false);
 
-  // Sync filters with URL on mount & whenever URL changes
+  const [showCategories, setShowCategories] = useState(true);
+  const [showSubCategories, setShowSubCategories] = useState(true);
+
+  const productsPerPage = 32;
+
+  // Sync filters from URL
   useEffect(() => {
-    const searchParam = searchParams.get("search") || "";
-    const categoryParam = searchParams.get("category") || "";
-    const subCategoryParam = searchParams.get("subCategory") || "";
-    const minParam = searchParams.get("min") || "";
-    const maxParam = searchParams.get("max") || "";
-    const sortParam = searchParams.get("sort") || "";
-    const pageParam = parseInt(searchParams.get("page") || "1", 10);
-
-    setSearch(searchParam);
-    setSelectedCategories(categoryParam ? categoryParam.split(",") : []);
-    setSelectedSubCategories(
-      subCategoryParam ? subCategoryParam.split(",") : []
+    setSearch(searchParams.get("search") || "");
+    setSelectedCategories(
+      (searchParams.get("category") || "").split(",").filter(Boolean)
     );
-    setMinPrice(minParam);
-    setMaxPrice(maxParam);
-    setSortBy(sortParam);
-    setCurrentPage(isNaN(pageParam) ? 1 : pageParam);
+    setSelectedSubCategories(
+      (searchParams.get("subCategory") || "").split(",").filter(Boolean)
+    );
+    setMinPrice(searchParams.get("min") || "");
+    setMaxPrice(searchParams.get("max") || "");
+    setSortBy(searchParams.get("sort") || "");
+    setCurrentPage(parseInt(searchParams.get("page") || "1", 10));
   }, [searchParams]);
 
-  // Update URL automatically whenever filters change
+  // Update URL whenever filters change
   useEffect(() => {
     const params = new URLSearchParams();
     if (search.trim()) params.set("search", search.trim());
-    if (selectedCategories.length > 0)
+    if (selectedCategories.length)
       params.set("category", selectedCategories.join(","));
-    if (selectedSubCategories.length > 0)
+    if (selectedSubCategories.length)
       params.set("subCategory", selectedSubCategories.join(","));
     if (minPrice) params.set("min", minPrice);
     if (maxPrice) params.set("max", maxPrice);
@@ -83,27 +82,44 @@ export default function ProductFiltersClient({
     router,
   ]);
 
-  // Filtered & sorted products
+  // Trigger filtering animation
+  useEffect(() => {
+    setIsFiltering(true);
+    const timer = setTimeout(() => setIsFiltering(false), 300);
+    return () => clearTimeout(timer);
+  }, [
+    search,
+    selectedCategories,
+    selectedSubCategories,
+    minPrice,
+    maxPrice,
+    sortBy,
+  ]);
+
+  // Scroll to top on page change
+  useEffect(
+    () => window.scrollTo({ top: 0, behavior: "smooth" }),
+    [currentPage]
+  );
+
+  // Filter & sort products
   const filteredProducts = useMemo(() => {
     let filtered = rawProducts;
 
-    if (search.trim()) {
+    if (search.trim())
       filtered = filtered.filter((p) =>
         p.title.toLowerCase().includes(search.toLowerCase())
       );
-    }
 
-    if (selectedCategories.length > 0) {
+    if (selectedCategories.length)
       filtered = filtered.filter((p) =>
         selectedCategories.includes(p.category)
       );
-    }
 
-    if (selectedSubCategories.length > 0) {
+    if (selectedSubCategories.length)
       filtered = filtered.filter((p) =>
         p.subCategory?.some((sub) => selectedSubCategories.includes(sub))
       );
-    }
 
     const min = parseFloat(minPrice);
     const max = parseFloat(maxPrice);
@@ -112,16 +128,14 @@ export default function ProductFiltersClient({
     if (!isNaN(max))
       filtered = filtered.filter((p) => parseFloat(p.price) <= max);
 
-    // ✅ Sorting logic
-    if (sortBy === "low-to-high") {
+    if (sortBy === "low-to-high")
       filtered = [...filtered].sort(
         (a, b) => parseFloat(a.price) - parseFloat(b.price)
       );
-    } else if (sortBy === "high-to-low") {
+    if (sortBy === "high-to-low")
       filtered = [...filtered].sort(
         (a, b) => parseFloat(b.price) - parseFloat(a.price)
       );
-    }
 
     return filtered;
   }, [
@@ -139,7 +153,6 @@ export default function ProductFiltersClient({
     () => Array.from(new Set(rawProducts.map((p) => p.category))),
     [rawProducts]
   );
-
   const subCategories = useMemo(
     () =>
       Array.from(
@@ -173,7 +186,7 @@ export default function ProductFiltersClient({
     setCurrentPage(1);
   };
 
-  // Pagination logic
+  // Pagination
   const indexOfLast = currentPage * productsPerPage;
   const indexOfFirst = indexOfLast - productsPerPage;
   const currentProducts = filteredProducts.slice(indexOfFirst, indexOfLast);
@@ -200,20 +213,19 @@ export default function ProductFiltersClient({
       <div className="flex justify-center gap-2 mt-6 flex-wrap">
         <Button
           variant="outline"
-          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
           disabled={currentPage === 1}
         >
           Prev
         </Button>
-
-        {pageNumbers.map((num, index) =>
+        {pageNumbers.map((num, i) =>
           num === ellipsis ? (
-            <span key={index} className="px-2 py-1 text-gray-500">
+            <span key={i} className="px-2 py-1 text-gray-500">
               {ellipsis}
             </span>
           ) : (
             <Button
-              key={index}
+              key={i}
               variant={currentPage === num ? "default" : "outline"}
               onClick={() => setCurrentPage(Number(num))}
             >
@@ -221,12 +233,9 @@ export default function ProductFiltersClient({
             </Button>
           )
         )}
-
         <Button
           variant="outline"
-          onClick={() =>
-            setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-          }
+          onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
           disabled={currentPage === totalPages}
         >
           Next
@@ -235,8 +244,33 @@ export default function ProductFiltersClient({
     );
   };
 
+  const FilterSection = ({
+    title,
+    show,
+    toggle,
+    children,
+  }: {
+    title: string;
+    show: boolean;
+    toggle: () => void;
+    children: React.ReactNode;
+  }) => (
+    <div className="border-t pt-4 mt-4">
+      <div
+        className="flex justify-between items-center cursor-pointer"
+        onClick={toggle}
+      >
+        <h4 className="font-medium text-sm">{title}</h4>
+        <ChevronDown
+          className={`w-4 h-4 transition-transform ${show ? "rotate-180" : ""}`}
+        />
+      </div>
+      {show && <div className="mt-2">{children}</div>}
+    </div>
+  );
+
   const FilterContent = () => (
-    <div className="space-y-6 p-4">
+    <div className="space-y-6">
       <div>
         <label htmlFor="search" className="block text-sm font-medium">
           Search
@@ -268,7 +302,6 @@ export default function ProductFiltersClient({
         </div>
       </div>
 
-      {/* ✅ Sort By Price */}
       <div>
         <label className="block text-sm font-medium">Sort by Price</label>
         <select
@@ -282,9 +315,12 @@ export default function ProductFiltersClient({
         </select>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium">Category</label>
-        <ul className="space-y-2 mt-2 max-h-40 overflow-y-auto pr-1">
+      <FilterSection
+        title="Category"
+        show={showCategories}
+        toggle={() => setShowCategories(!showCategories)}
+      >
+        <ul className="space-y-2 max-h-40 overflow-y-auto pr-1">
           {categories.map((cat) => (
             <li key={cat} className="flex items-center">
               <input
@@ -297,11 +333,14 @@ export default function ProductFiltersClient({
             </li>
           ))}
         </ul>
-      </div>
+      </FilterSection>
 
-      <div>
-        <label className="block text-sm font-medium">Sub Category</label>
-        <ul className="space-y-2 mt-2 max-h-40 overflow-y-auto pr-1">
+      <FilterSection
+        title="Sub Category"
+        show={showSubCategories}
+        toggle={() => setShowSubCategories(!showSubCategories)}
+      >
+        <ul className="space-y-2 max-h-40 overflow-y-auto pr-1">
           {subCategories.map((sub) => (
             <li key={sub} className="flex items-center">
               <input
@@ -314,7 +353,7 @@ export default function ProductFiltersClient({
             </li>
           ))}
         </ul>
-      </div>
+      </FilterSection>
 
       <Button variant="destructive" className="w-full" onClick={clearFilters}>
         Clear Filters
@@ -324,7 +363,7 @@ export default function ProductFiltersClient({
 
   return (
     <section className="wrapper py-6">
-      {/* Mobile Filter Button */}
+      {/* Mobile Filter */}
       <div className="lg:hidden m-4 flex justify-end">
         <Sheet>
           <SheetTrigger asChild>
@@ -332,36 +371,55 @@ export default function ProductFiltersClient({
               <Filter className="w-4 h-4" /> Filters
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-72 bg-white">
+          <SheetContent
+            side="right"
+            className="h-full w-full lg:w-80 flex flex-col justify-between bg-white"
+          >
             <SheetHeader>
               <SheetTitle>Filter Products</SheetTitle>
             </SheetHeader>
-            {FilterContent()}
+            <div className="overflow-y-auto p-4">{FilterContent()}</div>
           </SheetContent>
         </Sheet>
       </div>
 
-      {/* Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 p-4">
-        {/* Sidebar */}
         <aside className="hidden lg:block border rounded-md p-4 bg-white h-fit sticky top-4">
-          <h3 className="text-lg font-semibold mb-4">Filter</h3>
+          <h3 className="text-lg font-semibold mb-4">Filters</h3>
           {FilterContent()}
         </aside>
 
-        {/* Products */}
         <div className="lg:col-span-3 flex flex-col gap-6">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 lg:gap-6">
-            {currentProducts.length === 0 ? (
-              <p className="col-span-full text-center py-20 text-gray-500">
-                No products found.
-              </p>
-            ) : (
-              currentProducts.map((product) => (
-                <ProductCard key={product._id} {...product} />
-              ))
-            )}
-          </div>
+          {/* Product Grid */}
+          {isFiltering ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 lg:gap-6">
+              {Array.from({ length: productsPerPage }).map((_, i) => (
+                <div
+                  key={i}
+                  className="group p-2 lg:p-4 border rounded-md overflow-hidden bg-white shadow-sm animate-pulse"
+                >
+                  <div className="w-full h-24 md:h-36 lg:h-64 relative overflow-hidden rounded-md bg-gray-200" />
+                  <div className="p-2 lg:p-4 space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 lg:gap-6">
+              {currentProducts.length === 0 ? (
+                <p className="col-span-full text-center py-20 text-gray-500">
+                  No products found.
+                </p>
+              ) : (
+                currentProducts.map((product) => (
+                  <ProductCard key={product._id} {...product} />
+                ))
+              )}
+            </div>
+          )}
 
           {filteredProducts.length > productsPerPage && <Pagination />}
         </div>
