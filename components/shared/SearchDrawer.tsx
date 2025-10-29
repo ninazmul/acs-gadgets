@@ -58,7 +58,7 @@ export default function SearchDrawer({
         }}
       >
         <SheetHeader>
-          <SheetTitle className="text-red-600">Search Products</SheetTitle>
+          <SheetTitle className="text-primary-600">Search Products</SheetTitle>
         </SheetHeader>
 
         <div className="relative mt-3 mb-4">
@@ -66,9 +66,9 @@ export default function SearchDrawer({
             placeholder="Type to search..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full py-2 px-4 border-red-600 focus:ring-2 focus:ring-red-500 rounded-full"
+            className="w-full py-2 px-4 border-primary-600 focus:ring-2 focus:ring-primary-500 rounded-full"
           />
-          <FaMagnifyingGlass className="absolute right-4 top-1/2 -translate-y-1/2 text-red-600" />
+          <FaMagnifyingGlass className="absolute right-4 top-1/2 -translate-y-1/2 text-primary-600" />
         </div>
 
         {loading && <p className="text-gray-500 text-sm">Searching...</p>}
@@ -85,7 +85,7 @@ export default function SearchDrawer({
               key={item._id}
               href={`/products/${item._id}`}
               onClick={() => onOpenChange(false)}
-              className="flex items-center gap-3 p-2 rounded-lg border hover:bg-red-50 transition"
+              className="flex items-center gap-3 p-2 rounded-lg border hover:bg-primary-50 transition"
             >
               <div className="w-16 h-16 relative flex-shrink-0">
                 <Image
@@ -102,7 +102,7 @@ export default function SearchDrawer({
                 <span className="font-semibold text-gray-800">
                   {item.title}
                 </span>
-                <span className="text-red-600 text-sm font-medium">
+                <span className="text-primary-600 text-sm font-medium">
                   ৳{item.price}
                 </span>
               </div>

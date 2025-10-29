@@ -322,10 +322,64 @@ export async function searchProducts(query: string) {
 
   try {
     const regex = new RegExp(query, "i");
-    const products = await Product.find({ title: regex })
+
+    // --- Search local products ---
+    const localProducts = await Product.find({ title: regex })
       .limit(10)
-      .select("title images price sellingPrice slug");
-    return JSON.parse(JSON.stringify(products));
+      .select("title images price sellingPrice slug")
+      .lean();
+
+    const formattedLocal = JSON.parse(JSON.stringify(localProducts)).map(
+      (p: IExternalProduct) => ({
+        ...p,
+        source: "local",
+      })
+    );
+
+    // --- Search external products ---
+    let externalProducts: IProductDTO[] = [];
+    try {
+      const response = await axios.get(
+        "https://dropandshipping.com/api/products",
+        {
+          headers: { "x-api-key": process.env.PRODUCTS_API_KEY },
+        }
+      );
+
+      const data = Array.isArray(response.data)
+        ? response.data
+        : response.data?.products || [];
+      externalProducts = data
+        .filter((item: IExternalProduct) => regex.test(item.title))
+        .map((item: IExternalProduct) => ({
+          _id: item._id,
+          title: item.title,
+          description: item.description,
+          images: item.images || [],
+          price:
+            !item.suggestedPrice || item.suggestedPrice === item.price
+              ? (parseFloat(item.price) + 200).toString()
+              : (parseFloat(item.suggestedPrice) + 100).toString(),
+          oldPrice: item.oldPrice || "",
+          buyingPrice: item.price || "",
+          stock: item.stock || "0",
+          category: item.category || "",
+          subCategory: item.subCategory || [],
+          brand: item.brand || "",
+          features: item.features || [],
+          sku: item.sku || "",
+          variations: item.variations || [],
+          link: item.link || "",
+          createdAt: item.createdAt ? new Date(item.createdAt) : new Date(),
+          updatedAt: item.updatedAt ? new Date(item.updatedAt) : new Date(),
+          source: "external",
+        }));
+    } catch (err) {
+      console.error("Failed to fetch external products:", err);
+    }
+
+    // Merge local + external results
+    return [...formattedLocal, ...externalProducts].slice(0, 10); // limit to top 10
   } catch (error) {
     console.error("Search error:", error);
     return [];
