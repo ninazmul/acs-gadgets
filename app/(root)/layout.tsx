@@ -5,6 +5,7 @@ import Footer from "@/components/shared/Footer";
 import Header from "@/components/shared/Header";
 import ScrollHeaderWrapper from "@/components/shared/ScrollHeaderWrapper";
 import { Toaster } from "react-hot-toast";
+import SearchDrawer from "@/components/shared/SearchDrawer";
 
 export default function RootLayout({
   children,
@@ -13,6 +14,7 @@ export default function RootLayout({
 }) {
   const headerRef = useRef<HTMLDivElement>(null);
   const [headerHeight, setHeaderHeight] = useState(0);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   useLayoutEffect(() => {
     if (headerRef.current) {
@@ -32,13 +34,19 @@ export default function RootLayout({
       <Toaster />
       <ScrollHeaderWrapper>
         <div ref={headerRef}>
-          <Header />
+          <Header openSearch={() => setSearchOpen(true)} />
         </div>
       </ScrollHeaderWrapper>
 
       <main style={{ paddingTop: headerHeight }} className="flex-1">
         {children}
       </main>
+
+      <SearchDrawer
+        open={searchOpen}
+        onOpenChange={setSearchOpen}
+        headerHeight={headerHeight}
+      />
 
       <Footer />
     </div>

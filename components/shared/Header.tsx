@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/sheet";
 import CartCard from "./CartCard";
 import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
 import { getSetting } from "@/lib/actions/setting.actions";
 import { ISetting } from "@/lib/database/models/setting.model";
 import { FaMagnifyingGlass } from "react-icons/fa6";
@@ -43,15 +42,17 @@ type CartItem = {
   }[];
 };
 
-export default function Header() {
+interface HeaderProps {
+  openSearch: () => void;
+}
+
+export default function Header({ openSearch }: HeaderProps) {
   const { user } = useUser();
-  const router = useRouter();
   const [adminStatus, setAdminStatus] = useState(false);
   const [Email, setEmail] = useState<string>("");
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [initialLoad, setInitialLoad] = useState(true);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [query, setQuery] = useState("");
   const [settings, setSettings] = useState<ISetting | null>(null);
 
   useEffect(() => {
@@ -98,11 +99,6 @@ export default function Header() {
     }, 3000);
     return () => clearInterval(interval);
   }, [fetchUserData]);
-
-  const handleLiveSearch = (value: string) => {
-    setQuery(value);
-    router.replace(`/products?search=${encodeURIComponent(value)}`);
-  };
 
   const handleQuantityChange = async (id: string, quantity: number) => {
     if (quantity < 1) return;
@@ -151,19 +147,13 @@ export default function Header() {
 
         {/* Live Search Input */}
         <div className="flex-1 max-w-md w-full mx-4">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search..."
-              value={query}
-              onChange={(e) => handleLiveSearch(e.target.value)}
-              className="w-full py-2 px-4 rounded-full border border-primary focus:outline-none focus:ring-2 focus:ring-primary-600 text-primary-600 placeholder-primary-500"
-              spellCheck={false}
-            />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-primary-500 select-none">
-              <FaMagnifyingGlass />
-            </span>
-          </div>
+          <button
+            onClick={openSearch}
+            className="flex items-center gap-2 px-4 py-2 rounded-full border border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white transition w-full"
+          >
+            <FaMagnifyingGlass />
+            <span className="hidden md:inline">Search</span>
+          </button>
         </div>
 
         <div className="flex items-center gap-3">
@@ -206,10 +196,13 @@ export default function Header() {
         {Email ? (
           <div className="flex items-center gap-4">
             <a href={"/orders"}>
-              <Button size={"sm"} variant={"ghost"} className="text-white hover:text-primary-500 flex items-center gap-1 rounded-full">
+              <Button
+                size={"sm"}
+                variant={"ghost"}
+                className="text-white hover:text-primary-500 flex items-center gap-1 rounded-full"
+              >
                 {" "}
-                <Package size={18} />{" "}
-                <span className="">My Orders</span>
+                <Package size={18} /> <span className="">My Orders</span>
               </Button>
             </a>
 

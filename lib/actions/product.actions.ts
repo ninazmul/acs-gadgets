@@ -317,6 +317,21 @@ export const decreaseProductQuantity = async (
   }
 };
 
+export async function searchProducts(query: string) {
+  if (!query) return [];
+
+  try {
+    const regex = new RegExp(query, "i");
+    const products = await Product.find({ title: regex })
+      .limit(10)
+      .select("title images price sellingPrice slug");
+    return JSON.parse(JSON.stringify(products));
+  } catch (error) {
+    console.error("Search error:", error);
+    return [];
+  }
+}
+
 export const deleteProduct = async (productId: string) => {
   try {
     await connectToDatabase();
