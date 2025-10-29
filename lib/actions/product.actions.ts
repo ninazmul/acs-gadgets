@@ -321,15 +321,12 @@ export async function searchProducts(query: string) {
   if (!query) return [];
 
   try {
-    const allProducts = await getAllProducts();
     const regex = new RegExp(query, "i");
+    const products = await getAllProducts();
 
-    const filteredProducts = allProducts.filter((p) =>
-      regex.test(p.title)
-    );
+    const matched = products.filter((p) => regex.test(p.title)).slice(0, 10);
 
-    // limit to 10 results
-    return filteredProducts.slice(0, 10);
+    return JSON.parse(JSON.stringify(matched));
   } catch (error) {
     console.error("Search error:", error);
     return [];
