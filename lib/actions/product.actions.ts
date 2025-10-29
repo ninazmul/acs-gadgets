@@ -317,32 +317,19 @@ export const decreaseProductQuantity = async (
   }
 };
 
-let productCache: IProductDTO[] | null = null;
-let lastFetchTime = 0;
-
-export async function getCachedProducts() {
-  const now = Date.now();
-  const cacheDuration = 5 * 60 * 1000; // 5 minutes
-
-  if (productCache && now - lastFetchTime < cacheDuration) {
-    return productCache;
-  }
-
-  const products = await getAllProducts();
-  productCache = products;
-  lastFetchTime = now;
-
-  return products;
-}
-
 export async function searchProducts(query: string) {
   if (!query) return [];
 
   try {
-    const allProducts = await getCachedProducts();
+    const allProducts = await getAllProducts();
     const regex = new RegExp(query, "i");
 
-    return allProducts.filter(p => regex.test(p.title)).slice(0, 10);
+    const filteredProducts = allProducts.filter((p) =>
+      regex.test(p.title)
+    );
+
+    // limit to 10 results
+    return filteredProducts.slice(0, 10);
   } catch (error) {
     console.error("Search error:", error);
     return [];
