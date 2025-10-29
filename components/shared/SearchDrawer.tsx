@@ -10,7 +10,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { searchProducts } from "@/lib/actions/product.actions";
 import Image from "next/image";
-import Link from "next/link";
 import { FaMagnifyingGlass } from "react-icons/fa6";
 import { IProduct } from "@/lib/database/models/product.model";
 
@@ -82,7 +81,7 @@ export default function SearchDrawer({
 
         <div className="space-y-3">
           {results.map((item) => (
-            <Link
+            <a
               key={item._id}
               href={`/products/${item._id}`}
               onClick={() => onOpenChange(false)}
@@ -107,7 +106,7 @@ export default function SearchDrawer({
                   ৳{item.price}
                 </span>
               </div>
-            </Link>
+            </a>
           ))}
         </div>
       </SheetContent>
