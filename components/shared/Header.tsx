@@ -149,10 +149,10 @@ export default function Header({ openSearch }: HeaderProps) {
         <div className="flex-1 max-w-md w-full mx-4">
           <button
             onClick={openSearch}
-            className="flex items-center gap-2 px-4 py-2 rounded-full border border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white transition w-full"
+            className="flex items-center gap-2 px-4 py-2 rounded-full border border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white bg-white transition w-full"
           >
             <FaMagnifyingGlass />
-            <span className="hidden md:inline">Search</span>
+            Search...
           </button>
         </div>
 
