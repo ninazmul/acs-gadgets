@@ -18,6 +18,17 @@ const Page = async () => {
 
   const products = (await getAllProducts()) || [];
 
+  const safeProducts = products.map((p) => ({
+    _id: p._id as string,
+    title: p.title as string,
+    price: String(p.price), // convert number|string → string
+    stock: String(p.stock), // convert number|string → string
+    category: p.category as string,
+    brand: p.brand,
+    sku: p.sku,
+    source: "local" as const, // adjust if needed
+  }));
+
   return (
     <>
       <section className=" py-2 md:py-5">
@@ -34,7 +45,7 @@ const Page = async () => {
       </section>
 
       <div className="wrapper my-8">
-        <ProductTable products={products} />
+        <ProductTable products={safeProducts} />
       </div>
     </>
   );

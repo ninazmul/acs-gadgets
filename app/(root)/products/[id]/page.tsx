@@ -50,6 +50,8 @@ const ProductDetails = async ({ params }: PageProps) => {
     );
   }
 
+  const stock = Number(product.stock || 0); // convert string or number to number
+
   const relatedProducts = allProducts
     .filter((p: IProductDTO) => {
       if (p._id === id) return false;
@@ -166,23 +168,20 @@ const ProductDetails = async ({ params }: PageProps) => {
           <Card>
             <CardContent className="p-4 space-y-4">
               {/* Stock Info */}
-              {product.stock === "0" ? (
+              {stock === 0 ? (
                 <p className="text-destructive font-medium">Out of Stock</p>
               ) : (
-                <p className="text-green-600 font-medium">
-                  In Stock {product.stock}
+                <p className="text-green-600 font-medium">In Stock {stock}</p>
+              )}
+
+              {stock > 0 && stock <= 3 && (
+                <p className="text-destructive text-sm font-semibold">
+                  Only {stock} left in stock!
                 </p>
               )}
 
-              {parseInt(product.stock || "0") > 0 &&
-                parseInt(product.stock || "0") <= 3 && (
-                  <p className="text-destructive text-sm font-semibold">
-                    Only {product.stock} left in stock!
-                  </p>
-                )}
-
-              {/* Add to Cart Button with Variation Support */}
-              {product.stock !== "0" && (
+              {/* Add to Cart Button */}
+              {stock !== 0 && (
                 <AddToCart
                   product={{
                     _id: product._id as string,
@@ -191,7 +190,7 @@ const ProductDetails = async ({ params }: PageProps) => {
                       imageUrl: img.imageUrl,
                       _id: img._id ?? "",
                     })),
-                    price: product.price as string,
+                    price: String(product.price), // ensure string
                     category: product.category as string,
                     brand: product.brand,
                     sku: product.sku as string,
@@ -235,7 +234,15 @@ const ProductDetails = async ({ params }: PageProps) => {
           <h2 className="text-xl font-bold">Related Products</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-4">
             {relatedProducts.slice(0, 10).map((item: IProductDTO) => (
-              <ProductCard key={item._id} {...item} />
+              <ProductCard
+                key={item._id}
+                _id={item._id}
+                title={item.title}
+                price={String(item.price)} // <-- convert to string
+                oldPrice={item.oldPrice}
+                category={item.category}
+                images={item.images}
+              />
             ))}
           </div>
         </section>
