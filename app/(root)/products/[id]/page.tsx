@@ -54,7 +54,7 @@ const ProductDetails = async ({ params }: PageProps) => {
 
   const relatedProducts = allProducts
     .filter((p: IProductDTO) => {
-      if (p._id === id) return false;
+      if (p._id.toString() === id) return false;
 
       const categoryMatch = p.category === product.category;
       const brandMatch = p.brand === product.brand;
@@ -109,7 +109,7 @@ const ProductDetails = async ({ params }: PageProps) => {
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold">{product.title}</h1>
               <ShareButton
-                productId={product._id as string}
+                productId={product._id.toString() as string}
                 productName={product.title ?? ""}
               />
             </div>
@@ -184,7 +184,7 @@ const ProductDetails = async ({ params }: PageProps) => {
               {stock !== 0 && (
                 <AddToCart
                   product={{
-                    _id: product._id as string,
+                    _id: product._id.toString() as string,
                     title: product.title as string,
                     images: (product.images ?? []).map((img) => ({
                       imageUrl: img.imageUrl,
@@ -233,9 +233,9 @@ const ProductDetails = async ({ params }: PageProps) => {
         <section className="space-y-4">
           <h2 className="text-xl font-bold">Related Products</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-4">
-            {relatedProducts.slice(0, 10).map((item: IProductDTO) => (
+            {relatedProducts.slice(0, 10).map((item: IProductDTO, idx) => (
               <ProductCard
-                key={item._id}
+                key={idx}
                 _id={item._id}
                 title={item.title}
                 price={String(item.price)} // <-- convert to string

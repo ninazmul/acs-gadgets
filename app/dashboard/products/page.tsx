@@ -19,7 +19,7 @@ const Page = async () => {
   const products = (await getAllProducts()) || [];
 
   const safeProducts = products.map((p) => ({
-    _id: p._id as string,
+    _id: p._id.toString() as string,
     title: p.title as string,
     price: String(p.price), // convert number|string → string
     stock: String(p.stock), // convert number|string → string

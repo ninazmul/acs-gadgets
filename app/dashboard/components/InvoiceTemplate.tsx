@@ -44,7 +44,7 @@ export default function InvoiceTemplate({
           <h1 className="text-4xl font-extrabold text-orange-600">INVOICE</h1>
           <p className="mt-2 text-sm">
             <span className="font-semibold">Invoice ID:</span> #
-            {order.orderId || order._id}
+            {order.orderId || order._id.toString()}
           </p>
           <p className="text-sm">
             <span className="font-semibold">Date:</span>{" "}

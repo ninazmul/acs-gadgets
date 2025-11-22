@@ -32,8 +32,8 @@ export default function ProductSlider({ products }: Props) {
       }}
       className="!py-4"
     >
-      {products.map((product) => (
-        <SwiperSlide key={product._id} className="h-auto">
+      {products.map((product, idx) => (
+        <SwiperSlide key={idx} className="h-auto">
           <div className="h-full border p-2 lg:p-4 rounded-md">
             <SliderCard {...product} price={String(product.price)} />
           </div>

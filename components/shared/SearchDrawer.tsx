@@ -80,9 +80,9 @@ export default function SearchDrawer({
         )}
 
         <div className="space-y-3">
-          {results.map((item) => (
+          {results.map((item, idx) => (
             <a
-              key={item._id}
+              key={idx}
               href={`/products/${item._id}`}
               onClick={() => onOpenChange(false)}
               className="flex items-center gap-3 p-2 rounded-lg border hover:bg-primary-50 transition"

@@ -8,6 +8,7 @@ import Product, {
   IProductDTO,
 } from "../database/models/product.model";
 import axios from "axios";
+import { Types } from "mongoose";
 
 interface FilterParams {
   search?: string;
@@ -22,7 +23,7 @@ interface FilterParams {
 
 // Define type for external API product
 interface IExternalProduct {
-  _id: string;
+  _id: Types.ObjectId;
   title: string;
   description: string;
   images: { imageUrl: string; _id?: string }[];
@@ -292,7 +293,7 @@ export const getProductById = async (
         ? response.data
         : response.data?.products || [];
       const item: IExternalProduct | undefined = data.find(
-        (p: IExternalProduct) => p._id === productId
+        (p: IExternalProduct) => p._id.toString() === productId
       );
 
       if (!item) return null;
@@ -360,7 +361,7 @@ export const getProductsBySubCategory = async (subCategory: string) => {
       externalProducts = productsArray
         .filter((p: IExternalProduct) => p.subCategory?.includes(subCategory))
         .map((item: IExternalProduct) => ({
-          _id: item._id,
+          _id: item._id.toString(),
           title: item.title,
           description: item.description,
           images: item.images || [],

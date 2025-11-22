@@ -1,7 +1,7 @@
-import { Document, Schema, model, models } from "mongoose";
+import { Document, Schema, Types, model, models } from "mongoose";
 
 export interface IProduct extends Document {
-  _id: string;
+  _id: Types.ObjectId;
   title: string;
   description: string;
   images: {
@@ -28,7 +28,7 @@ export interface IProduct extends Document {
 }
 
 export interface IProductDTO {
-  _id: string;
+  _id: Types.ObjectId;
   title: string;
   description: string;
   images: {

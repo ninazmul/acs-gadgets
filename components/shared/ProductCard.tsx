@@ -1,9 +1,10 @@
 "use client";
 
+import { Types } from "mongoose";
 import Image from "next/image";
 
 type ProductCardProps = {
-  _id: string;
+  _id: Types.ObjectId;
   title: string;
   price: string;
   oldPrice?: string;

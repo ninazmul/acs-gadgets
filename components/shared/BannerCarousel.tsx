@@ -52,8 +52,8 @@ const BannerCarousel = ({ banners }: BannerCarouselProps) => {
           },
         }}
       >
-        {banners.map((banner) => (
-          <SwiperSlide key={banner._id}>
+        {banners.map((banner, idx) => (
+          <SwiperSlide key={idx}>
             <div className="aspect-[9/16] w-full overflow-hidden rounded-lg shadow-md">
               <Image
                 src={banner.image}
