@@ -32,12 +32,13 @@ export interface IProductDTO {
   title: string;
   description: string;
   images: {
-    _id: string; imageUrl: string 
-}[];
-  price: string;
+    _id?: string;
+    imageUrl: string;
+  }[];
+  price: string | number;
   oldPrice?: string;
   buyingPrice?: string;
-  stock: string;
+  stock: number | string;
   category: string;
   subCategory?: string[];
   brand?: string;

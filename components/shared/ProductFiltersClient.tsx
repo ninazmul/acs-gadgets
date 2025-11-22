@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,21 +11,44 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Filter, ChevronDown } from "lucide-react";
-import { IProductDTO } from "@/lib/database/models/product.model";
+import { ChevronDown, Filter, X } from "lucide-react";
 import ProductCard from "@/components/shared/ProductCard";
+import { IProduct } from "@/lib/database/models/product.model";
+import { ICategory } from "@/lib/database/models/category.model";
+
+const subCategoryOptions = [
+  "New Arrival",
+  "Featured",
+  "Best Seller",
+  "Trending",
+  "Limited Edition",
+  "Exclusive",
+  "Top Rated",
+  "On Sale",
+  "Flash Deal",
+  "Clearance",
+  "Back in Stock",
+  "Hot Deal",
+  "Editor's Pick",
+  "Weekly Highlight",
+  "Seasonal Offer",
+  "Recommended",
+  "Gift Idea",
+  "Customer Favorite",
+];
 
 interface ProductFiltersClientProps {
-  rawProducts: IProductDTO[];
+  apiKey: string;
+  categories: ICategory[];
 }
 
 export default function ProductFiltersClient({
-  rawProducts,
+  apiKey,
+  categories,
 }: ProductFiltersClientProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Filter state
   const [search, setSearch] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedSubCategories, setSelectedSubCategories] = useState<string[]>(
@@ -33,16 +56,20 @@ export default function ProductFiltersClient({
   );
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
-  const [sortBy, setSortBy] = useState("");
+  const [sortOrder, setSortOrder] = useState<"" | "lowToHigh" | "highToLow">(
+    ""
+  );
   const [currentPage, setCurrentPage] = useState(1);
-  const [isFiltering, setIsFiltering] = useState(false);
 
+  const [products, setProducts] = useState<IProduct[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
   const [showCategories, setShowCategories] = useState(true);
   const [showSubCategories, setShowSubCategories] = useState(true);
 
   const productsPerPage = 32;
 
-  // Sync filters from URL
+  // Sync URL params to state
   useEffect(() => {
     setSearch(searchParams.get("search") || "");
     setSelectedCategories(
@@ -53,21 +80,21 @@ export default function ProductFiltersClient({
     );
     setMinPrice(searchParams.get("min") || "");
     setMaxPrice(searchParams.get("max") || "");
-    setSortBy(searchParams.get("sort") || "");
+    setSortOrder((searchParams.get("sort") as "lowToHigh" | "highToLow") || "");
     setCurrentPage(parseInt(searchParams.get("page") || "1", 10));
   }, [searchParams]);
 
-  // Update URL whenever filters change
+  // Update URL when filters change
   useEffect(() => {
     const params = new URLSearchParams();
-    if (search.trim()) params.set("search", search.trim());
+    if (search) params.set("search", search);
     if (selectedCategories.length)
       params.set("category", selectedCategories.join(","));
     if (selectedSubCategories.length)
       params.set("subCategory", selectedSubCategories.join(","));
     if (minPrice) params.set("min", minPrice);
     if (maxPrice) params.set("max", maxPrice);
-    if (sortBy) params.set("sort", sortBy);
+    if (sortOrder) params.set("sort", sortOrder);
     params.set("page", String(currentPage));
 
     router.replace(`/products?${params.toString()}`);
@@ -77,91 +104,56 @@ export default function ProductFiltersClient({
     selectedSubCategories,
     minPrice,
     maxPrice,
-    sortBy,
+    sortOrder,
     currentPage,
     router,
   ]);
 
-  // Trigger filtering animation
+  // Fetch products from API
   useEffect(() => {
-    setIsFiltering(true);
-    const timer = setTimeout(() => setIsFiltering(false), 300);
-    return () => clearTimeout(timer);
+    const fetchProducts = async () => {
+      setIsLoading(true);
+      try {
+        const params = new URLSearchParams();
+        if (search) params.set("search", search);
+        if (selectedCategories.length)
+          params.set("category", selectedCategories.join(","));
+        if (selectedSubCategories.length)
+          params.set("subCategory", selectedSubCategories.join(","));
+        if (minPrice) params.set("min", minPrice);
+        if (maxPrice) params.set("max", maxPrice);
+        if (sortOrder) params.set("sort", sortOrder);
+        params.set("page", currentPage.toString());
+        params.set("limit", productsPerPage.toString());
+
+        // <-- Use internal API here
+        const res = await fetch(`/api/products?${params.toString()}`, {
+          headers: { "x-api-key": apiKey },
+          cache: "no-store",
+        });
+        const data = await res.json();
+
+        setProducts(data.products || []);
+        setTotalCount(data.totalCount || 0);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProducts();
   }, [
     search,
     selectedCategories,
     selectedSubCategories,
     minPrice,
     maxPrice,
-    sortBy,
+    sortOrder,
+    currentPage,
+    apiKey,
   ]);
 
-  // Scroll to top on page change
-  useEffect(
-    () => window.scrollTo({ top: 0, behavior: "smooth" }),
-    [currentPage]
-  );
-
-  // Filter & sort products
-  const filteredProducts = useMemo(() => {
-    let filtered = rawProducts;
-
-    if (search.trim())
-      filtered = filtered.filter((p) =>
-        p.title.toLowerCase().includes(search.toLowerCase())
-      );
-
-    if (selectedCategories.length)
-      filtered = filtered.filter((p) =>
-        selectedCategories.includes(p.category)
-      );
-
-    if (selectedSubCategories.length)
-      filtered = filtered.filter((p) =>
-        p.subCategory?.some((sub) => selectedSubCategories.includes(sub))
-      );
-
-    const min = parseFloat(minPrice);
-    const max = parseFloat(maxPrice);
-    if (!isNaN(min))
-      filtered = filtered.filter((p) => parseFloat(p.price) >= min);
-    if (!isNaN(max))
-      filtered = filtered.filter((p) => parseFloat(p.price) <= max);
-
-    if (sortBy === "low-to-high")
-      filtered = [...filtered].sort(
-        (a, b) => parseFloat(a.price) - parseFloat(b.price)
-      );
-    if (sortBy === "high-to-low")
-      filtered = [...filtered].sort(
-        (a, b) => parseFloat(b.price) - parseFloat(a.price)
-      );
-
-    return filtered;
-  }, [
-    rawProducts,
-    search,
-    selectedCategories,
-    selectedSubCategories,
-    minPrice,
-    maxPrice,
-    sortBy,
-  ]);
-
-  // Categories & Subcategories
-  const categories = useMemo(
-    () => Array.from(new Set(rawProducts.map((p) => p.category))),
-    [rawProducts]
-  );
-  const subCategories = useMemo(
-    () =>
-      Array.from(
-        new Set(rawProducts.flatMap((p) => p.subCategory || []).filter(Boolean))
-      ),
-    [rawProducts]
-  );
-
-  // Handlers
   const handleCategoryChange = (cat: string) => {
     setSelectedCategories((prev) =>
       prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
@@ -182,15 +174,11 @@ export default function ProductFiltersClient({
     setSelectedSubCategories([]);
     setMinPrice("");
     setMaxPrice("");
-    setSortBy("");
+    setSortOrder("");
     setCurrentPage(1);
   };
 
-  // Pagination
-  const indexOfLast = currentPage * productsPerPage;
-  const indexOfFirst = indexOfLast - productsPerPage;
-  const currentProducts = filteredProducts.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+  const totalPages = Math.ceil(totalCount / productsPerPage);
 
   const Pagination = () => {
     const pageNumbers: (number | string)[] = [];
@@ -213,6 +201,7 @@ export default function ProductFiltersClient({
       <div className="flex justify-center gap-2 mt-6 flex-wrap">
         <Button
           variant="outline"
+          size="sm"
           onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
           disabled={currentPage === 1}
         >
@@ -226,6 +215,7 @@ export default function ProductFiltersClient({
           ) : (
             <Button
               key={i}
+              size="sm"
               variant={currentPage === num ? "default" : "outline"}
               onClick={() => setCurrentPage(Number(num))}
             >
@@ -235,6 +225,7 @@ export default function ProductFiltersClient({
         )}
         <Button
           variant="outline"
+          size="sm"
           onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
           disabled={currentPage === totalPages}
         >
@@ -278,6 +269,7 @@ export default function ProductFiltersClient({
         <Input
           id="search"
           type="text"
+          placeholder="Search products..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="mt-1 w-full"
@@ -305,13 +297,15 @@ export default function ProductFiltersClient({
       <div>
         <label className="block text-sm font-medium">Sort by Price</label>
         <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
+          value={sortOrder}
+          onChange={(e) =>
+            setSortOrder(e.target.value as "lowToHigh" | "highToLow" | "")
+          }
           className="mt-2 w-full border rounded-md p-2 text-sm"
         >
           <option value="">Default</option>
-          <option value="low-to-high">Price: Low to High</option>
-          <option value="high-to-low">Price: High to Low</option>
+          <option value="lowToHigh">Low to High</option>
+          <option value="highToLow">High to Low</option>
         </select>
       </div>
 
@@ -321,15 +315,15 @@ export default function ProductFiltersClient({
         toggle={() => setShowCategories(!showCategories)}
       >
         <ul className="space-y-2 max-h-40 overflow-y-auto pr-1">
-          {categories.map((cat) => (
-            <li key={cat} className="flex items-center">
+          {categories.map((cat, idx) => (
+            <li key={idx} className="flex items-center">
               <input
                 type="checkbox"
-                checked={selectedCategories.includes(cat)}
-                onChange={() => handleCategoryChange(cat)}
+                checked={selectedCategories.includes(cat.title)}
+                onChange={() => handleCategoryChange(cat.title)}
                 className="h-4 w-4 text-primary border-gray-300 rounded"
               />
-              <label className="ml-2 text-sm capitalize">{cat}</label>
+              <label className="ml-2 text-sm capitalize">{cat.title}</label>
             </li>
           ))}
         </ul>
@@ -341,7 +335,7 @@ export default function ProductFiltersClient({
         toggle={() => setShowSubCategories(!showSubCategories)}
       >
         <ul className="space-y-2 max-h-40 overflow-y-auto pr-1">
-          {subCategories.map((sub) => (
+          {subCategoryOptions.map((sub) => (
             <li key={sub} className="flex items-center">
               <input
                 type="checkbox"
@@ -355,7 +349,10 @@ export default function ProductFiltersClient({
         </ul>
       </FilterSection>
 
-      <Button variant="destructive" className="w-full" onClick={clearFilters}>
+      <Button
+        className="w-full bg-red-500 text-white hover:bg-red-600"
+        onClick={clearFilters}
+      >
         Clear Filters
       </Button>
     </div>
@@ -379,10 +376,20 @@ export default function ProductFiltersClient({
               <SheetTitle>Filter Products</SheetTitle>
             </SheetHeader>
             <div className="overflow-y-auto p-4">{FilterContent()}</div>
+            <div className="p-4 border-t flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={clearFilters}
+              >
+                Clear
+              </Button>
+            </div>
           </SheetContent>
         </Sheet>
       </div>
 
+      {/* Desktop Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 p-4">
         <aside className="hidden lg:block border rounded-md p-4 bg-white h-fit sticky top-4">
           <h3 className="text-lg font-semibold mb-4">Filters</h3>
@@ -390,8 +397,35 @@ export default function ProductFiltersClient({
         </aside>
 
         <div className="lg:col-span-3 flex flex-col gap-6">
+          {/* Active Filters Summary */}
+          <div className="flex flex-wrap gap-2 mb-2">
+            {selectedCategories.map((cat) => (
+              <span
+                key={cat}
+                className="bg-gray-100 text-sm px-3 py-1 rounded-full flex items-center gap-1"
+              >
+                {cat}
+                <X
+                  size={14}
+                  className="cursor-pointer"
+                  onClick={() => handleCategoryChange(cat)}
+                />
+              </span>
+            ))}
+            {search && (
+              <span className="bg-gray-100 text-sm px-3 py-1 rounded-full flex items-center gap-1">
+                “{search}”
+                <X
+                  size={14}
+                  className="cursor-pointer"
+                  onClick={() => setSearch("")}
+                />
+              </span>
+            )}
+          </div>
+
           {/* Product Grid */}
-          {isFiltering ? (
+          {isLoading ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 lg:gap-6">
               {Array.from({ length: productsPerPage }).map((_, i) => (
                 <div
@@ -409,19 +443,19 @@ export default function ProductFiltersClient({
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 lg:gap-6">
-              {currentProducts.length === 0 ? (
+              {products.length === 0 ? (
                 <p className="col-span-full text-center py-20 text-gray-500">
                   No products found.
                 </p>
               ) : (
-                currentProducts.map((product) => (
-                  <ProductCard key={product._id} {...product} />
+                products.map((p) => (
+                  <ProductCard key={p._id.toString()} {...p} />
                 ))
               )}
             </div>
           )}
 
-          {filteredProducts.length > productsPerPage && <Pagination />}
+          {totalCount > productsPerPage && <Pagination />}
         </div>
       </div>
     </section>

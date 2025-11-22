@@ -9,6 +9,17 @@ import Product, {
 } from "../database/models/product.model";
 import axios from "axios";
 
+interface FilterParams {
+  search?: string;
+  category?: string;
+  subCategory?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  sort?: "lowToHigh" | "highToLow" | null;
+  page?: number;
+  limit?: number;
+}
+
 // Define type for external API product
 interface IExternalProduct {
   _id: string;
@@ -128,6 +139,131 @@ export const getLocalProductById = async (
     return null;
   }
 };
+
+export async function getFilteredProducts({
+  search = "",
+  category = "",
+  subCategory = "",
+  minPrice = NaN,
+  maxPrice = NaN,
+  sort = null,
+  page = 1,
+  limit = 32,
+}: FilterParams): Promise<{ products: IProductDTO[]; totalCount: number }> {
+  await connectToDatabase();
+
+  // --- 1) FETCH LOCAL PRODUCTS (NO FILTERS IN DB) ---
+  const localProductsRaw = await Product.find().lean<IProduct[]>();
+  const localProducts: IProductDTO[] = localProductsRaw.map((p) => ({
+    ...p,
+    price: Number(p.price),
+    source: "local",
+  }));
+
+  // --- 2) FETCH EXTERNAL PRODUCTS ---
+  let externalProducts: IProductDTO[] = [];
+  try {
+    const response = await axios.get(
+      "https://dropandshipping.com/api/products",
+      {
+        headers: { "x-api-key": process.env.PRODUCTS_API_KEY },
+      }
+    );
+
+    const data = response.data;
+    const productsArray = Array.isArray(data) ? data : data?.products || [];
+
+    externalProducts = productsArray.map((item: IExternalProduct) => ({
+      _id: item._id,
+      title: item.title,
+      description: item.description,
+      images: item.images || [],
+      price:
+        !item.suggestedPrice || item.suggestedPrice === item.price
+          ? parseFloat(item.price) + 200
+          : parseFloat(item.suggestedPrice) + 100,
+      buyingPrice: item.price || "",
+      oldPrice: item.oldPrice || "",
+      stock: item.stock || "0",
+      category: item.category || "",
+      subCategory: item.subCategory || [],
+      brand: item.brand || "",
+      features: item.features || [],
+      sku: item.sku || "",
+      variations: item.variations || [],
+      link: item.link || "",
+      createdAt: item.createdAt ? new Date(item.createdAt) : new Date(),
+      updatedAt: item.updatedAt ? new Date(item.updatedAt) : new Date(),
+      source: "external",
+    }));
+  } catch (error) {
+    console.error("EXTERNAL FETCH FAILED:", error);
+  }
+
+  // --- 3) MERGE PRODUCTS ---
+  let products = [...localProducts, ...externalProducts];
+
+  // --- 4) APPLY FILTERS IN JS ---
+
+  // 🔍 Search filter
+  if (search.trim()) {
+    const terms = search.trim().split(/\s+/i);
+    products = products.filter((p) =>
+      terms.every((word) =>
+        [p.title, p.sku, p.brand, p.category, ...(p.subCategory || [])]
+          .join(" ")
+          .toLowerCase()
+          .includes(word.toLowerCase())
+      )
+    );
+  }
+
+  // 🏷 Category filter
+  if (category) {
+    const cats = category.split(",");
+    products = products.filter((p) => cats.includes(p.category));
+  }
+
+  // 🏷 Sub-category filter
+  if (subCategory) {
+    const subs = subCategory.split(",");
+    products = products.filter((p) =>
+      (p.subCategory || []).some((sc) => subs.includes(sc))
+    );
+  }
+
+  // 💰 Price filter
+  if (!isNaN(minPrice) || !isNaN(maxPrice)) {
+    products = products.filter((p) => {
+      const price = Number(p.price);
+      if (!isNaN(minPrice) && price < minPrice) return false;
+      if (!isNaN(maxPrice) && price > maxPrice) return false;
+      return true;
+    });
+  }
+
+  // --- 5) SORTING ---
+  if (sort === "lowToHigh") {
+    products.sort((a, b) => Number(a.price) - Number(b.price));
+  } else if (sort === "highToLow") {
+    products.sort((a, b) => Number(b.price) - Number(a.price));
+  } else {
+    products.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }
+
+  // --- 6) PAGINATION ---
+  const totalCount = products.length;
+  const startIndex = (page - 1) * limit;
+  const paginated = products.slice(startIndex, startIndex + limit);
+
+  return {
+    products: paginated,
+    totalCount,
+  };
+}
 
 export const getProductById = async (
   productId: string
