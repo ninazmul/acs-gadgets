@@ -59,7 +59,6 @@ const BannerCarousel = ({ banners }: BannerCarouselProps) => {
                 src={banner.image}
                 alt={banner.title}
                 fill
-                unoptimized
                 className="object-cover"
                 sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
                 priority

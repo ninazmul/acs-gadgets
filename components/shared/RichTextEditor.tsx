@@ -307,7 +307,6 @@ export const RichTextEditor = ({ value, onChange }: Props) => {
               alt="Preview"
               fill
               className="object-contain rounded-md"
-              unoptimized
             />
           </div>
         </div>

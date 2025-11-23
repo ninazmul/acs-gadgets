@@ -214,7 +214,6 @@ const OrderDetails = async ({ params }: PageProps) => {
                     alt={product.title}
                     width={96}
                     height={96}
-                    unoptimized
                     className="rounded-md object-cover w-full h-24"
                   />
                 </div>

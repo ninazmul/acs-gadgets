@@ -132,7 +132,6 @@ export default function Header({ openSearch }: HeaderProps) {
             height={100}
             className="w-10 h-10 md:w-8 md:h-8 lg:w-12 lg:h-12"
             priority
-            unoptimized
             quality={100}
             alt={settings?.name || "Logo"}
           />

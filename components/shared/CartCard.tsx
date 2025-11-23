@@ -39,7 +39,6 @@ const ProductCard = ({
           alt={item.title}
           width={100}
           height={100}
-          unoptimized
           className="rounded-lg object-cover w-full h-full"
         />
       </div>

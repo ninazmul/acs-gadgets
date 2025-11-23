@@ -65,7 +65,6 @@ export function FileUploader({
             src={imageUrl}
             alt="Uploaded preview"
             fill
-            unoptimized
             className="object-cover object-center transition-opacity duration-300 group-hover:opacity-80"
           />
           <div className="absolute bottom-2 right-2 bg-white/80 px-2 py-1 text-xs rounded shadow">

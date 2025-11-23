@@ -36,7 +36,6 @@ const SliderCard = ({
           src={firstImage}
           alt={title}
           fill
-          unoptimized
           className="object-contain transition-opacity duration-300 ease-in-out group-hover:opacity-0"
         />
         {/* Second Image (hover) */}
@@ -44,7 +43,6 @@ const SliderCard = ({
           src={secondImage}
           alt={`${title} alt`}
           fill
-          unoptimized
           className="object-contain transition-opacity duration-300 ease-in-out opacity-0 group-hover:opacity-100"
         />
       </div>

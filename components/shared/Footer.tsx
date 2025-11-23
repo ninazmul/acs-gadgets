@@ -65,7 +65,6 @@ const Footer = () => {
               src={settings?.logo || "/assets/images/logo.png"}
               width={200}
               height={200}
-              unoptimized
               alt={settings?.name || "Logo"}
               priority
             />

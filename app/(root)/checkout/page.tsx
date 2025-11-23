@@ -248,7 +248,6 @@ export default function CheckoutPage() {
                     alt={item.title}
                     width={50}
                     height={50}
-                    unoptimized
                     className="rounded border h-20 w-14 object-cover"
                   />
                   <div className="flex-1">
